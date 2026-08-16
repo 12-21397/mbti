@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>专业版MBTI人格测试 | 完整93题 + 深度解读</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f7;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            padding: 30px 20px;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            overflow: hidden;
+            padding: 30px 35px 50px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2C3E66, #1A4A6F);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub {
+            color: #4a627a;
+            border-left: 4px solid #3b82f6;
+            padding-left: 16px;
+            margin: 12px 0 28px 0;
+            font-weight: 500;
+        }
+
+        .badge-pro {
+            background: #1e293b;
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 40px;
+            padding: 4px 14px;
+            display: inline-block;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* 问卷区 */
+        .question-card {
+            background: #f9fafc;
+            border-radius: 24px;
+            padding: 18px 22px;
+            margin-bottom: 16px;
+            transition: 0.2s;
+            border: 1px solid #e2edf2;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 14px;
+            color: #0f2b3d;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #cfdfe8;
+            transition: 0.1s;
+            cursor: pointer;
+        }
+        .option-item.selected {
+            background: #eef4ff;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 6px rgba(59,130,246,0.2);
+        }
+        .option-item input {
+            accent-color: #2c5f8a;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .option-item label {
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #1f3b4c;
+        }
+
+        /* 进度条 */
+        .progress-area {
+            margin: 20px 0 25px;
+        }
+        .progress-bar-bg {
+            background: #e2e8f0;
+            border-radius: 40px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #3b82f6;
+            width: 0%;
+            height: 100%;
+            transition: width 0.2s ease;
+        }
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #3a5e7a;
+        }
+
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: white;
+            border: 1px solid #bdd3e4;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1f4a6e;
+        }
+        button.primary {
+            background: #1f4a6e;
+            border: none;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        button.primary:hover {
+            background: #0f3a57;
+            transform: translateY(-2px);
+        }
+        button:hover {
+            background: #e6f0f5;
+        }
+
+        /* 结果区域 */
+        .result-area {
+            margin-top: 48px;
+            background: #f0f6fe;
+            border-radius: 32px;
+            padding: 28px;
+            display: none;
+            border: 1px solid #cde3f0;
+        }
+        .result-header {
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #1f3e5c;
+        }
+        .type-name {
+            font-size: 2.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2563eb, #0f2b3d);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .dimension-score {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin: 25px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 28px;
+        }
+        .dim-item {
+            flex: 1;
+            min-width: 160px;
+        }
+        .dim-label {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .dim-bar {
+            background: #e2edf2;
+            border-radius: 20px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .dim-fill {
+            height: 100%;
+            width: 50%;
+            background: #3b82f6;
+            border-radius: 20px;
+        }
+        .interpretation {
+            line-height: 1.55;
+            margin-top: 20px;
+            background: white;
+            padding: 22px;
+            border-radius: 24px;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 35px;
+            color: #7c8f9c;
+        }
+        @media (max-width: 640px) {
+            .container { padding: 20px; }
+            .option-item { padding: 4px 12px; }
+            .options { gap: 10px; }
+        }
+        .warning {
+            color: #b91c1c;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="testContainer">
+    <div class="badge-pro">专业心理测量版 · MBTI 完整93题</div>
+    <h1>迈尔斯-布里格斯类型指标</h1>
+    <div class="sub">完整版93项情景判断 · 四维度深度解读 · 权威框架</div>
+
+    <!-- 问卷区域 -->
+    <div id="questionsArea"></div>
+    <div class="progress-area">
+        <div class="progress-bar-bg"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-stats"><span>已完成: <span id="answeredCount">0</span> / <span id="totalCount">93</span></span><span>完整性越高结果越精确</span></div>
+    </div>
+    <div class="btn-group">
+        <button id="resetBtn">⟳ 重置全部答案</button>
+        <button id="submitBtn" class="primary">✨ 生成专业报告</button>
+    </div>
+
+    <!-- 结果展示区 -->
+    <div id="resultArea" class="result-area">
+        <div id="reportContent">
+            <div style="text-align:center; margin-bottom:12px;"><span style="background:#1e293b; color:white; padding:3px 12px; border-radius:30px;">MBTI 专业测评报告</span></div>
+            <div class="result-header">您的四字母人格类型</div>
+            <div class="type-name" id="resultType">----</div>
+            <div class="dimension-score" id="dimScoresPanel"></div>
+            <div class="interpretation" id="interpretationText"></div>
+            <div style="margin-top:20px; font-size:0.7rem; color:#6f8eaa; border-top:1px solid #d4e2ec; padding-top:15px;">基于完整93题评估 · 仅供自我探索参考</div>
+        </div>
+    </div>
+    <footer>专业版：每个题目根据偏好倾向计分，最终通过倾向清晰度呈现。请根据第一反应真实作答。</footer>
+</div>
+
+<script>
+    // ----------------------------- 专业93题 MBTI 题库 (涵盖E/I, S/N, T/F, J/P) ---------------------------------
+    // 生成93个题目，确保每个维度均衡覆盖。实际采用动态构造保证题目数量，同时题目内容有区分度且经典。
+    // 为了专业感: 包含工作/社交/决策/生活风格等场景。
+    const dimensions = ['EI', 'SN', 'TF', 'JP'];
+    // 每个维度分配约23-24题，总和93
+    const counts = { EI: 24, SN: 23, TF: 23, JP: 23 }; // 24+23+23+23=93
+    
+    let questions = [];
+    let qId = 1;
+    
+    // 生成 EI 题目 (外向E - 内向I)  高分表示E倾向
+    const eiStems = [
+        "参加派对或社交活动后，你通常感到精力充沛。", "你更喜欢成为众人瞩目的焦点。", "与人交流时，你通常是先开口的一方。",
+        "周末独处太久会让你感到不安。", "你倾向于边想边说，在讨论中整理思路。", "你拥有广泛的社交圈，喜欢认识新朋友。",
+        "在会议上，你乐于主动分享观点。", "相比小团体，你更喜欢大型聚会。", "你经常主动联系朋友组织活动。",
+        "电话沟通对你来说比邮件更自然。", "你从社交互动中获得能量。", "你很少拒绝聚会邀请。",
+        "你更愿意在小组中担任发言人。", "你的工作环境中喜欢开放式办公。", "你倾向于通过交谈解决问题。",
+        "新环境里你很快就能融入。", "你乐于在社交媒体分享生活动态。", "你享受头脑风暴和集体讨论。",
+        "你的日程表上经常有社交安排。", "你讲话声音通常比较洪亮。", "你喜欢团队运动而非个人运动。",
+        "相比独自旅行，你更爱结伴出行。", "你从他人那里获得灵感。", "你乐于在公众场合演讲。"
+    ];
+    // SN 直觉N vs 实感S  高分表示N
+    const snStems = [
+        "你更喜欢思考未来可能性而非眼前细节。", "你容易被抽象理论吸引。", "你经常想象各种潜在的发展趋势。",
+        "你更重视灵感而非既定事实。", "你喜欢探索新概念，哪怕不实用。", "你相信直觉引导决策。",
+        "你乐于尝试新颖方法而非墨守成规。", "你时常思考深层含义。", "你更喜欢隐喻和象征性语言。",
+        "你关注整体模式多于具体数字。", "你对科幻或奇幻题材感兴趣。", "你相信事物之间存在潜在联系。",
+        "你倾向于先构思蓝图再完善细节。", "你经常做“如果…会怎样”的假设。", "你重视创意超越常规流程。",
+        "你容易看到事物革新潜力。", "你从哲学讨论中获得乐趣。", "你对未来趋势充满好奇。",
+        "你相信想象力比知识更重要。", "你享受头脑中的幻想世界。", "你认为经验可以通过创新改造。",
+        "你喜欢设计原创方案。", "你更信任想象力的指引。"
+    ];
+    // TF 思维T vs 情感F  高分表示T
+    const tfStems = [
+        "做决定时，你优先考虑逻辑一致性。", "你更重视公平而非仁慈。", "你倾向于客观分析胜过个人感受。",
+        "你容易指出方案中的逻辑漏洞。", "你认为原则比人际关系更重要。", "你擅长冷静处理冲突。",
+        "你欣赏批判性反馈，即使刺耳。", "你依据客观标准做决定。", "你更看重真理而非和谐。",
+        "你认为规则应普遍适用。", "你在争论中关注对错。", "你更容易被数据说服。",
+        "你认为情绪可能干扰判断。", "你做重大决策时较少受情感影响。", "你欣赏坦率直接的交流。",
+        "你坚持认为某些事应就事论事。", "你在团队里常扮演理性分析角色。", "你习惯评估利弊而非情感代价。",
+        "你认为公平比同情更重要。", "你很少因人情改变原则。", "你能为了正确而拒绝请求。",
+        "你倾向于使用因果逻辑。", "你面对纠纷时保持客观距离。"
+    ];
+    // JP 判断J vs 感知P  高分表示J
+    const jpStems = [
+        "你喜欢制定详细日程并按计划执行。", "你倾向于尽早做出决定。", "你享受把事情安排得井井有条。",
+        "你的工作空间整洁有序。", "你偏好有明确截止日期的工作。", "你容易做出承诺并严格遵守。",
+        "你更希望事情尘埃落定。", "你喜欢清单和流程表。", "你对不确定性感到不适。",
+        "你习惯提前规划假期行程。", "你倾向于完成任务后再放松。", "你喜欢可预测的环境。",
+        "你重视守时和纪律。", "你希望尽快关闭待办事项。", "你很少拖延重要事情。",
+        "你更愿意事先知道所有步骤。", "你的决策风格果断。", "你享受按部就班的成就感。",
+        "你觉得随性而为会带来焦虑。", "你倾向于控制局面。", "你做事通常有明确目标。",
+        "你更喜欢稳定有序的生活节奏。", "你一般会提前完成工作。"
+    ];
+    
+    // 确保每个维度的题目数量精确
+    function addItems(list, dim, targetCount) {
+        let idx = 0;
+        for(let i=0; i<targetCount; i++) {
+            let text = list[i % list.length];
+            // 微调让题目不重复感: 加编号修饰但保留核心
+            let finalText = text;
+            if(i >= list.length) finalText = text + " (情景变式)";
+            questions.push({
+                id: qId++,
+                text: finalText,
+                dimension: dim,
+                direction: 1  // 1表示正向计分（高分对应E/N/T/J）；若反向题目另行设计，但这里全部采用一致方向专业量表常见
+            });
+        }
+    }
+    addItems(eiStems, 'EI', counts.EI);
+    addItems(snStems, 'SN', counts.SN);
+    addItems(tfStems, 'TF', counts.TF);
+    addItems(jpStems, 'JP', counts.JP);
+    // 总共应当93题
+    const TOTAL_QS = questions.length;
+    
+    // 存储用户答案: key=questionId, value=分值 (1,2,3,4,5) 对应非常不同意->非常同意 (倾向左边计分低，右边计分高)
+    // 量表: 1=非常不同意(偏向左侧特质), 2=不同意, 3=中立, 4=同意, 5=非常同意(偏向右侧特质)
+    let userAnswers = new Array(TOTAL_QS+1).fill(null); // 索引从1开始
+    
+    // 渲染问卷
+    function renderQuestions() {
+        const container = document.getElementById('questionsArea');
+        container.innerHTML = '';
+        questions.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            const qNum = idx+1;
+            card.innerHTML = `
+                <div class="question-text">${qNum}. ${q.text}</div>
+                <div class="options" data-qid="${q.id}">
+                    ${[1,2,3,4,5].map(val => {
+                        let label = '';
+                        if(val===1) label = '非常不同意';
+                        else if(val===2) label = '不同意';
+                        else if(val===3) label = '中立';
+                        else if(val===4) label = '同意';
+                        else label = '非常同意';
+                        const isChecked = (userAnswers[q.id] === val);
+                        return `<div class="option-item ${isChecked ? 'selected' : ''}" data-val="${val}">
+                                    <input type="radio" name="q${q.id}" value="${val}" id="q${q.id}_${val}" ${isChecked ? 'checked' : ''}>
+                                    <label for="q${q.id}_${val}">${label}</label>
+                                </div>`;
+                    }).join('')}
+                </div>
+            `;
+            container.appendChild(card);
+            // 绑定事件
+            const optsDiv = card.querySelector('.options');
+            const radios = optsDiv.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const selectedVal = parseInt(e.target.value);
+                    userAnswers[q.id] = selectedVal;
+                    updateProgress();
+                    // 更新UI高亮
+                    const parentDiv = optsDiv.querySelectorAll('.option-item');
+                    parentDiv.forEach(item => {
+                        const itemVal = parseInt(item.getAttribute('data-val'));
+                        if(itemVal === selectedVal) item.classList.add('selected');
+                        else item.classList.remove('selected');
+                    });
+                });
+            });
+        });
+        updateProgress();
+    }
+    
+    function updateProgress() {
+        let answered = 0;
+        for(let i=1; i<=TOTAL_QS; i++) {
+            if(userAnswers[i] !== null && userAnswers[i] !== undefined) answered++;
+        }
+        document.getElementById('answeredCount').innerText = answered;
+        document.getElementById('totalCount').innerText = TOTAL_QS;
+        const percent = (answered / TOTAL_QS) * 100;
+        document.getElementById('progressFill').style.width = percent + '%';
+    }
+    
+    // 计算各维度得分: 原始分范围(每题1~5, 题目数量*1 到 数量*5)
+    // 倾向分数: 将分数转换为0~100的倾向分，分值越高越倾向右侧（E/N/T/J）
+    function computeScores() {
+        let dimScores = {
+            EI: { raw: 0, max: 0, count:0 },
+            SN: { raw: 0, max: 0, count:0 },
+            TF: { raw: 0, max: 0, count:0 },
+            JP: { raw: 0, max: 0, count:0 }
+        };
+        for(let q of questions) {
+            const ans = userAnswers[q.id];
+            if(ans === null) continue;
+            const dim = q.dimension;
+            dimScores[dim].raw += ans;
+            dimScores[dim].max += 5;
+            dimScores[dim].count++;
+        }
+        // 转化为倾向百分比  (raw - min) / (max-min) *100   min = count*1
+        let result = {};
+        for(let dim of dimensions) {
+            let count = dimScores[dim].count;
+            if(count === 0) {
+                result[dim] = 50;
+                continue;
+            }
+            let minPossible = count * 1;
+            let maxPossible = count * 5;
+            let raw = dimScores[dim].raw;
+            let percent = ((raw - minPossible) / (maxPossible - minPossible)) * 100;
+            percent = Math.min(100, Math.max(0, percent));
+            result[dim] = percent;
+        }
+        return result;
+    }
+    
+    // 根据倾向百分比得出字母:  >50 为右侧字母 E,N,T,J ; <=50为左侧 I,S,F,P
+    function getMBTIType(percentages) {
+        let ei = percentages.EI > 50 ? 'E' : 'I';
+        let sn = percentages.SN > 50 ? 'N' : 'S';
+        let tf = percentages.TF > 50 ? 'T' : 'F';
+        let jp = percentages.JP > 50 ? 'J' : 'P';
+        return ei+sn+tf+jp;
+    }
+    
+    // 细致解读: 根据四维度倾向以及强度生成深度描述
+    function getDetailedInterpretation(type, percentages) {
+        const descriptions = {
+            'INTJ': "建筑师型：富有战略思想，善于长远规划，独立且理性。坚信自己的洞察，追求能力 mastery。",
+            'INTP': "逻辑学家型：创新思维，热衷理论模型，追求知识深度，常保持质疑精神。",
+            'ENTJ': "指挥官型：天生的领导者，果断高效，长于宏观布局并推动执行。",
+            'ENTP': "辩论家型：机智敏捷，喜欢头脑风暴，善于挑战传统并寻找新可能。",
+            'INFJ': "提倡者型：理想主义但务实，关怀他人，有深刻的洞察力和使命感。",
+            'INFP': "调停者型：充满热忱与忠诚，注重内在和谐，追寻意义与真实性。",
+            'ENFJ': "主人公型：热情鼓舞他人，擅长沟通，促进集体成长与合作。",
+            'ENFP': "竞选者型：自由精神，创意充沛，善于发现人与事物间的潜力。",
+            'ISTJ': "物流师型：务实细致，可靠负责，遵循秩序与传统，重视诚信。",
+            'ISFJ': "守护者型：周到体贴，默默奉献，注重他人需求，有极强的责任感。",
+            'ESTJ': "总经理型：高效务实，擅长管理监督，坚持原则并推动团队达标。",
+            'ESFJ': "执政官型：热心合作，关注社会和谐，乐于服务他人并维持传统。",
+            'ISTP': "鉴赏家型：冷静务实，善于动手解决危机，灵活适应环境。",
+            'ISFP': "探险家型：敏感温和，享受当下美学，忠于个人价值观。",
+            'ESTP': "企业家型：精力充沛，擅长应变与谈判，追求刺激与实效。",
+            'ESFP': "表演者型：热情洋溢，享受生活，用感染力带给他人快乐。"
+        };
+        let baseDesc = descriptions[type] || "您拥有独特的人格组合，兼具多面性。";
+        // 增加维度倾向强度解析
+        let eiStrong = percentages.EI > 65 ? "显著外向倾向" : (percentages.EI < 35 ? "显著内向倾向" : "中度倾向");
+        let snStrong = percentages.SN > 65 ? "强烈直觉导向" : (percentages.SN < 35 ? "强烈实感导向" : "均衡感知");
+        let tfStrong = percentages.TF > 65 ? "鲜明思维倾向" : (percentages.TF < 35 ? "鲜明情感倾向" : "思维-情感平衡");
+        let jpStrong = percentages.JP > 65 ? "高度判断型" : (percentages.JP < 35 ? "高度感知型" : "灵活适应型");
+        
+        let advices = `根据您的作答，${eiStrong}，${snStrong}，${tfStrong}，${jpStrong}。`;
+        let full = `${baseDesc} ${advices} 在职业偏好、沟通风格及决策模式上，此类人格通常表现出独特的优势。建议发挥自身天然倾向，同时有意识地发展对立维度以提升全面性。`;
+        return full;
+    }
+    
+    // 显示结果
+    function showResult() {
+        // 检查完整性
+        let answeredCount = userAnswers.filter(a => a !== null).length;
+        if(answeredCount < TOTAL_QS) {
+            alert(`您只完成了 ${answeredCount}/${TOTAL_QS} 道题目。请全部完成后再获取专业报告，以确保准确性。`);
+            return false;
+        }
+        const percentages = computeScores();
+        const mbtiType = getMBTIType(percentages);
+        document.getElementById('resultType').innerText = `${mbtiType}  (${mbtiType})`;
+        // 显示维度条
+        const dimPanel = document.getElementById('dimScoresPanel');
+        dimPanel.innerHTML = '';
+        const dimMap = { EI: 'E/I 外向-内向', SN: 'S/N 实感-直觉', TF: 'T/F 思维-情感', JP: 'J/P 判断-感知' };
+        for(let [key, label] of Object.entries(dimMap)) {
+            const score = percentages[key];
+            const leftLetter = key==='EI'?'E':(key==='SN'?'S':(key==='TF'?'T':'J'));
+            const rightLetter = key==='EI'?'I':(key==='SN'?'N':(key==='TF'?'F':'P'));
+            const leftPercent = key==='EI'?score: (key==='SN'?score: (key==='TF'?score: score));
+            const rightPercent = 100 - leftPercent;
+            const fillWidth = leftPercent; // 左侧倾向宽度
+            const dominant = leftPercent > 50 ? leftLetter : rightLetter;
+            const subDominant = leftPercent > 50 ? `偏好 ${leftLetter} ${leftPercent.toFixed(1)}%` : `偏好 ${rightLetter} ${(100-leftPercent).toFixed(1)}%`;
+            dimPanel.innerHTML += `
+                <div class="dim-item">
+                    <div class="dim-label">${label} &nbsp; <span style="font-weight:normal;">${subDominant}</span></div>
+                    <div class="dim-bar"><div class="dim-fill" style="width: ${leftPercent}%; background: #2c6e9e;"></div></div>
+                    <div style="display:flex; justify-content:space-between;"><span>${leftLetter}</span><span>${rightLetter}</span></div>
+                </div>
+            `;
+        }
+        const interpretation = getDetailedInterpretation(mbtiType, percentages);
+        document.getElementById('interpretationText').innerHTML = `<strong>📖 深度解读</strong><br><br>${interpretation}<br><br><strong>✨ 发展建议：</strong> 了解自己的认知偏好，在团队合作中发挥优势，有意识弥补相对弱势维度，能够实现更全面的个人成长。`;
+        document.getElementById('resultArea').style.display = 'block';
+        window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+        return true;
+    }
+    
+    // 重置所有答案
+    function resetAll() {
+        if(confirm('重置后所有答案将被清空，确定重置吗？')) {
+            userAnswers = new Array(TOTAL_QS+1).fill(null);
+            renderQuestions();
+            document.getElementById('resultArea').style.display = 'none';
+            updateProgress();
+        }
+    }
+    
+    // 绑定事件
+    document.getElementById('submitBtn').addEventListener('click', () => showResult());
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    
+    // 初始化渲染
+    renderQuestions();
+    // 预置显示进度条
+    updateProgress();
+</script>
+</body>
+</html>
