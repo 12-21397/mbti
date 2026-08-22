@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#090405">
-<title>欲望与美德光谱</title>
+<title>七宗罪 vs 七美德</title>
 <style>
 :root{--night:#080405;--panel:#160b0e;--panel2:#221014;--ink:#f5e9df;--muted:#bda8a7;--gold:#c8a66b;--violet:#a62438;--sin:#e23d56;--virtue:#d3b47a;--line:rgba(210,170,130,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--night);color:var(--ink);font-family:ui-sans-serif,"PingFang SC","Microsoft YaHei",sans-serif}body{background:radial-gradient(circle at 50% -12%,#601422 0,transparent 35%),radial-gradient(circle at 100% 80%,#2b080e 0,transparent 38%),linear-gradient(160deg,#050304,#100608 55%,#070405)}button{font:inherit}.app{width:min(100%,480px);min-height:100vh;margin:auto;padding:22px 18px 42px}.page{display:none}.page.on{display:block}.eyebrow{text-transform:uppercase;letter-spacing:.22em;color:var(--gold);font-size:11px;font-weight:700}.card{background:linear-gradient(145deg,rgba(31,13,17,.97),rgba(12,7,9,.98));border:1px solid var(--line);border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.025)}
@@ -16,8 +16,8 @@
 </head>
 <body><main class="app">
 <section id="intro" class="page on">
-  <div class="hero card"><div class="eyebrow">Inner Tribunal · 14 Dimensions</div><h1>欲望<br>与美德光谱</h1><p class="lead">同一种力量，既可能把你推向冲动，也可能成为你主动选择的资源。看看你的七组内在拉力如何分布。</p>
-  <div class="duel"><div class="side sin"><span>本能之侧</span><strong>七种欲望</strong></div><div class="vs">vs</div><div class="side virtue"><span>选择之侧</span><strong>七种美德</strong></div></div>
+  <div class="hero card"><div class="eyebrow">Inner Tribunal · 14 Dimensions</div><h1>七宗罪<br>vs 七美德</h1><p class="lead">同一种力量，既可能把你推向冲动，也可能成为你主动选择的资源。看看你的七组内在拉力如何分布。</p>
+  <div class="duel"><div class="side sin"><span>本能之侧</span><strong>七宗罪</strong></div><div class="vs">vs</div><div class="side virtue"><span>选择之侧</span><strong>七美德</strong></div></div>
   <div class="stats"><div class="stat"><b>35</b>道题目</div><div class="stat"><b>14</b>个维度</div><div class="stat"><b>5–7</b>分钟</div></div><button class="primary" onclick="startTest()">进入人格审判庭</button><p class="note">趣味人格探索，不用于医学或心理诊断。</p></div>
 </section>
 <section id="quiz" class="page"><div class="topbar"><div class="eyebrow">Inner Tribunal</div><div class="count"><b id="now">1</b> / 35</div></div><div class="progress"><i id="progress"></i></div><div class="question card"><div class="qtag" id="qtag">直觉作答</div><div class="qtext" id="qtext"></div><div class="options" id="options"></div></div><div class="nav"><button class="ghost" onclick="prev()">上一题</button><button id="next" class="primary" onclick="next()" disabled>下一题</button></div></section>
