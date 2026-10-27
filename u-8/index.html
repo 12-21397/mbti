@@ -1,0 +1,2778 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="U">
+<title>日记本</title>
+<meta name="theme-color" content="#fef6f0">
+<meta name="description" content="一个支持目录、日记、日历、对话与本地备份的私人日记本。">
+<link rel="icon" type="image/png" href="./cover.png">
+<link rel="apple-touch-icon" href="./cover.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="日记本">
+<meta property="og:description" content="一个支持目录、日记、日历、对话与本地备份的私人日记本。">
+<meta property="og:url" content="https://12-21397.github.io/mbti/u-8/">
+<meta property="og:image" content="https://12-21397.github.io/mbti/u-8/cover.png">
+<meta name="twitter:card" content="summary">
+<style>
+  :root {
+    --bg: #fef6f0;
+    --surface: #fff5f0;
+    --surface2: #fff0ea;
+    --border: #f0d9cf;
+    --text: #5c4a4a;
+    --muted: #b09a94;
+    --accent: #e8879a;
+    --accent-dim: rgba(232,135,154,0.10);
+    --accent-shadow: rgba(232,135,154,0.30);
+    --red: #d96b6b;
+    --green: #6bb88a;
+    --mark-bg: rgba(232,135,154,0.18);
+    --slider-track: #f0d9cf;
+    --modal-overlay: rgba(255,240,234,0.88);
+    --fab-text: #fff;
+    color-scheme: light;
+  }
+
+  html.dark {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e8e4dc;
+    --muted: #6b6660;
+    --accent: #c9a96e;
+    --accent-dim: rgba(201,169,110,0.12);
+    --accent-shadow: rgba(201,169,110,0.35);
+    --red: #c96e6e;
+    --green: #6bb88a;
+    --mark-bg: rgba(201,169,110,0.25);
+    --slider-track: #2a2a2a;
+    --modal-overlay: rgba(0,0,0,0.85);
+    --fab-text: #0e0e0e;
+    color-scheme: dark;
+  }
+
+  :root {
+    --font-serif: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', Georgia, serif;
+    --font-mono: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-text-size-adjust: 100%;
+    transition: background 0.35s, color 0.3s;
+  }
+
+  header {
+    padding: 16px 20px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    transition: border-color 0.3s;
+  }
+
+  header h1 {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  header span { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+  .theme-toggle {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s; flex-shrink: 0;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  .fab {
+    position: fixed; bottom: 90px; right: 24px; width: 56px; height: 56px;
+    border-radius: 50%; background: var(--accent); color: var(--fab-text);
+    border: none; font-size: 26px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px var(--accent-shadow); z-index: 50;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.3s; line-height: 1;
+  }
+  .fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px var(--accent-shadow); }
+  .fab:active { transform: scale(0.95); }
+
+  .bottom-nav {
+    display: flex; border-top: 1px solid var(--border); background: var(--bg);
+    flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom);
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .bottom-nav button {
+    flex: 1; padding: 12px 8px; background: none; border: none; color: var(--muted);
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
+    cursor: pointer; transition: color 0.2s; text-transform: uppercase;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .bottom-nav button .icon { font-size: 19px; }
+  .bottom-nav button.active { color: var(--accent); }
+  .bottom-nav button:hover { color: var(--text); }
+
+  .app { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+  .sidebar { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+  .sidebar-tabs {
+    display: flex; border-bottom: 1px solid var(--border); transition: border-color 0.3s;
+  }
+
+  .tab-btn {
+    flex: 1; padding: 12px; background: none; border: none; color: var(--muted);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+  .sidebar-content::-webkit-scrollbar { width: 4px; }
+  .sidebar-content::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .search-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+
+  .search-wrap input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 12px; font-family: var(--font-serif);
+    font-size: 14px; outline: none; transition: border-color 0.2s, background 0.3s;
+    border-radius: 6px;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .principle-item {
+    padding: 12px; margin-bottom: 4px; cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s; position: relative; border-radius: 8px;
+  }
+  .principle-item:hover { background: var(--accent-dim); border-color: var(--border); }
+  .principle-item.active { background: var(--accent-dim); border-color: var(--accent); }
+
+  .principle-title { font-size: 16px; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+
+  .principle-meta { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+
+  .count-badge {
+    display: inline-block; background: var(--accent-dim); color: var(--accent);
+    padding: 1px 6px; font-family: var(--font-mono); font-size: 10px;
+    margin-left: 6px; border: 1px solid rgba(232,135,154,0.3); border-radius: 10px;
+  }
+  html.dark .count-badge { border-color: rgba(201,169,110,0.3); }
+
+  .entry-item {
+    padding: 12px; margin-bottom: 4px; cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s; border-radius: 8px;
+  }
+  .entry-item:hover { background: var(--surface); border-color: var(--border); }
+  .entry-item.active { background: var(--surface); border-color: var(--accent); }
+
+  .entry-date { font-family: var(--font-mono); font-size: 13px; color: var(--accent); margin-bottom: 4px; }
+
+  .entry-preview {
+    font-size: 15px; color: var(--muted); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .entry-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .entry-tag {
+    font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+    border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px;
+  }
+
+  .case-card {
+    padding: 16px; border: 1px solid var(--border); margin-bottom: 12px;
+    background: var(--surface); transition: border-color 0.2s, background 0.3s; border-radius: 10px;
+  }
+  .case-card:hover { border-color: var(--accent); }
+  .case-day { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+  .case-text { font-size: 16px; line-height: 1.8; color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none; padding: 10px 24px;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em;
+    cursor: pointer; transition: opacity 0.2s, background 0.3s; border-radius: 6px;
+  }
+  html.dark .btn-primary { color: #0e0e0e; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: none; color: var(--muted); border: 1px solid var(--border);
+    padding: 10px 20px; font-family: var(--font-mono); font-size: 12px;
+    letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s; border-radius: 6px;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--text); }
+
+  .analysis-result { background: var(--surface); border: 1px solid var(--border); padding: 20px; display: none; border-radius: 10px; }
+  .analysis-result.visible { display: block; }
+  .analysis-result h4 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-pill {
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(232,135,154,0.3); padding: 4px 12px;
+    font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+    transition: all 0.2s; border-radius: 14px;
+  }
+  html.dark .tag-pill { border-color: rgba(201,169,110,0.3); }
+  .tag-pill:hover { background: rgba(232,135,154,0.22); }
+  html.dark .tag-pill:hover { background: rgba(201,169,110,0.25); }
+
+  mark { background: var(--mark-bg); color: var(--accent); border-radius: 2px; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: var(--modal-overlay);
+    z-index: 100; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .modal-overlay.visible { display: flex; }
+
+  .modal-box {
+    background: var(--bg); border: 1px solid var(--border); width: 720px;
+    max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column;
+    overflow: hidden; border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.08);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  html.dark .modal-box { box-shadow: 0 12px 48px rgba(0,0,0,0.5); }
+
+  .modal-header {
+    padding: 20px 28px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+
+  .modal-header h2, .modal-header h3 {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.15em;
+    color: var(--accent); text-transform: uppercase;
+  }
+
+  .modal-close {
+    background: none; border: none; color: var(--muted); font-size: 19px;
+    cursor: pointer; line-height: 1; padding: 4px 8px; transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { flex: 1; overflow-y: auto; padding: 28px; min-height: 0; }
+  .modal-body::-webkit-scrollbar { width: 3px; }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .modal-body textarea {
+    width: 100%; min-height: 280px; background: transparent; border: none;
+    color: var(--text); font-family: var(--font-serif); font-size: 18px;
+    line-height: 1.9; resize: none; outline: none;
+  }
+  .modal-body textarea::placeholder { color: var(--muted); }
+
+  .modal-footer {
+    padding: 16px 28px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+
+  .modal-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  .loading { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+  .dot-anim { display: inline-flex; gap: 3px; }
+  .dot-anim i { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; display: inline-block; animation: blink 1.2s infinite; font-style: normal; }
+  .dot-anim i:nth-child(2) { animation-delay: 0.2s; }
+  .dot-anim i:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+  .nav-btn {
+    padding: 8px 16px; background: none; border: none; color: var(--muted);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+    cursor: pointer; transition: color 0.2s; text-transform: uppercase;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active { color: var(--accent); }
+
+  .wordcount { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+  /* ── NUMBER INPUT (compact) ── */
+  .num-inputs-bar {
+    display: flex; gap: 0; margin-bottom: 16px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .num-input-wrap {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 6px 0;
+  }
+  .num-input-wrap:not(:last-child) { border-right: 1px solid var(--border); }
+  .num-input-label {
+    font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.05em;
+    min-width: 28px;
+  }
+  .num-input-row { display: flex; align-items: center; gap: 0; }
+  .num-btn {
+    width: 26px; height: 26px; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 14px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: all 0.15s;
+    user-select: none; -webkit-user-select: none;
+  }
+  .num-btn:first-child { border-radius: 6px 0 0 6px; }
+  .num-btn:last-child { border-radius: 0 6px 6px 0; }
+  .num-btn:hover { background: var(--accent-dim); color: var(--accent); }
+  .num-btn:active { transform: scale(0.93); }
+  .num-val {
+    width: 30px; height: 26px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 13px; color: var(--accent);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .entry-meta-bar {
+    display: flex; gap: 20px; margin-bottom: 20px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .entry-meta-item { display: flex; flex-direction: column; gap: 3px; }
+  .entry-meta-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+  .entry-meta-val { font-family: var(--font-mono); font-size: 14px; color: var(--accent); }
+
+  /* ── CALENDAR ── */
+  .calendar-wrap { padding: 12px; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-nav button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 4px 8px; transition: color 0.2s; }
+  .cal-nav button:hover { color: var(--accent); }
+  .cal-month { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-dow { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-align: center; padding: 4px 0; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    cursor: default; border-radius: 8px; transition: all 0.15s; position: relative;
+  }
+  .cal-day.has-entry { color: var(--accent); cursor: pointer; background: var(--accent-dim); border: 1px solid rgba(232,135,154,0.3); }
+  html.dark .cal-day.has-entry { border-color: rgba(201,169,110,0.3); }
+  .cal-day.has-entry:hover { background: rgba(232,135,154,0.22); }
+  html.dark .cal-day.has-entry:hover { background: rgba(201,169,110,0.25); }
+  .cal-day.today { border: 1px solid var(--muted); }
+  .cal-day.can-write { cursor: pointer; color: var(--border); }
+  .cal-day.can-write:hover { color: var(--accent); background: var(--accent-dim); }
+
+  /* ── CHAT MODAL ── */
+  .chat-messages { display: flex; flex-direction: column; gap: 16px; min-height: 200px; }
+  .chat-msg { display: flex; gap: 10px; animation: msgIn 0.25s ease; }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 12px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .chat-msg.user .chat-avatar { background: var(--accent); color: #fff; }
+  html.dark .chat-msg.user .chat-avatar { color: #0e0e0e; }
+  .chat-msg.ai .chat-avatar { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); }
+  .chat-bubble {
+    max-width: 75%; padding: 12px 16px; border-radius: 14px; font-size: 15px;
+    line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+  }
+  .chat-msg.user .chat-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  html.dark .chat-msg.user .chat-bubble { color: #0e0e0e; }
+  .chat-msg.ai .chat-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+  .chat-input-wrap {
+    display: flex; gap: 10px; align-items: flex-end; padding: 16px 20px;
+    border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0;
+  }
+  .chat-input-wrap textarea {
+    flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--font-serif); font-size: 16px; padding: 10px 14px;
+    resize: none; outline: none; border-radius: 10px; min-height: 44px;
+    max-height: 120px; transition: border-color 0.2s; line-height: 1.5;
+  }
+  .chat-input-wrap textarea:focus { border-color: var(--accent); }
+  .chat-input-wrap textarea::placeholder { color: var(--muted); }
+  .chat-send-btn {
+    background: var(--accent); color: #fff; border: none; width: 44px; height: 44px;
+    border-radius: 50%; font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  html.dark .chat-send-btn { color: #0e0e0e; }
+  .chat-send-btn:hover { opacity: 0.85; }
+  .chat-send-btn:active { transform: scale(0.93); }
+  .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .chat-history-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+  }
+  .chat-history-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .chat-action-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--font-mono); font-size: 10px; padding: 4px 10px;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .chat-action-btn:hover { color: var(--text); border-color: var(--text); }
+  .chat-action-btn.danger:hover { color: var(--red); border-color: var(--red); }
+  .chat-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 20px; gap: 16px; color: var(--muted); text-align: center;
+  }
+  .chat-empty-icon { font-size: 36px; opacity: 0.5; }
+  .chat-empty-title { font-size: 15px; color: var(--text); }
+  .chat-empty-desc { font-size: 13px; line-height: 1.7; max-width: 280px; }
+  .chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+  .chat-suggest-btn {
+    background: var(--accent-dim); border: 1px solid rgba(232,135,154,0.3);
+    color: var(--accent); font-family: var(--font-mono); font-size: 11px;
+    padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+  }
+  html.dark .chat-suggest-btn { border-color: rgba(201,169,110,0.3); }
+  .chat-suggest-btn:hover { background: rgba(232,135,154,0.2); }
+  html.dark .chat-suggest-btn:hover { background: rgba(201,169,110,0.2); }
+
+  /* ── PENDING PRINCIPLE ── */
+  .pending-card {
+    padding: 14px; border: 1px dashed var(--border); margin-bottom: 10px;
+    background: var(--surface); border-radius: 10px; transition: border-color 0.2s;
+  }
+  .pending-card:hover { border-color: var(--accent); }
+  .pending-title { font-size: 15px; color: var(--accent); margin-bottom: 4px; }
+  .pending-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+  .pending-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .pending-actions { display: flex; gap: 8px; }
+  .pending-actions button {
+    font-family: var(--font-mono); font-size: 10px; padding: 4px 10px;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+
+  /* ── TREND CHART ── */
+  .trend-chart { padding: 12px; }
+  .trend-chart canvas { width: 100% !important; height: 200px !important; }
+  .trend-period-btns {
+    display: flex; gap: 6px; margin-bottom: 12px; justify-content: center;
+  }
+  .trend-period-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--font-mono); font-size: 10px; padding: 4px 12px;
+    border-radius: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .trend-period-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+  .trend-period-btn:hover { color: var(--accent); }
+
+  /* ── SOFT DECORATIVE ── */
+  header { background: var(--bg); }
+  html:not(.dark) .modal-box { box-shadow: 0 8px 40px rgba(232,135,154,0.10), 0 2px 12px rgba(0,0,0,0.04); }
+  html:not(.dark) .fab { background: linear-gradient(135deg, #e8879a 0%, #f0a5b5 100%); }
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+button, .btn-primary, .btn-secondary, .tab-btn, .trend-period-btn, .fab, .modal-close {
+  touch-action: manipulation;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>日记本</h1>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="headerStats"></span>
+    <button class="nav-btn" onclick="openModal('dataModal')" style="padding:4px 10px;">数据</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">☀</button>
+    <button class="nav-btn" onclick="openModal('settingsModal')" style="font-size:16px;padding:4px 8px;">⚙</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" onclick="switchTab('principles')">目录</button>
+      <button class="tab-btn" onclick="switchTab('entries')">日记</button>
+      <button class="tab-btn" onclick="switchTab('calendar')">日历</button>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="搜索关键词..." oninput="handleSearch(this.value)">
+    </div>
+    <div class="sidebar-content" id="sidebarContent"></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button id="bnPrinciples" class="active" onclick="switchTab('principles');setBottomNav('principles')">
+    <span class="icon">◎</span>目录
+  </button>
+  <button id="bnEntries" onclick="switchTab('entries');setBottomNav('entries')">
+    <span class="icon">◈</span>日记
+  </button>
+  <button id="bnCalendar" onclick="switchTab('calendar');setBottomNav('calendar')">
+    <span class="icon">◷</span>日历
+  </button>
+  <button id="bnChat" onclick="openChatModal();setBottomNav('chat')">
+    <span class="icon">◌</span>对话
+  </button>
+  <button id="bnMore" onclick="openModal('toolsModal')">
+    <span class="icon">⋯</span>更多
+  </button>
+</div>
+
+<button class="fab" onclick="openWriteModal()" title="写入日记">＋</button>
+
+<!-- WRITE MODAL -->
+<div class="modal-overlay" id="writeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="writeModalTitle">写入日记</h2>
+      <button class="modal-close" onclick="closeModal('writeModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="writeTimestamp" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:20px;"></div>
+
+<div class="num-inputs-bar">
+        <div class="num-input-wrap">
+          <div class="num-input-label">睡眠h</div>
+          <div class="num-input-row">
+            <button class="num-btn" onclick="adjustNum('sleep',-1)">−</button>
+            <div class="num-val" id="sleepVal">8</div>
+            <button class="num-btn" onclick="adjustNum('sleep',1)">+</button>
+          </div>
+        </div>
+        <div class="num-input-wrap">
+          <div class="num-input-label">能量</div>
+          <div class="num-input-row">
+            <button class="num-btn" onclick="adjustNum('energy',-1)">−</button>
+            <div class="num-val" id="energyVal">5</div>
+            <button class="num-btn" onclick="adjustNum('energy',1)">+</button>
+          </div>
+        </div>
+        <div class="num-input-wrap">
+          <div class="num-input-label">心情</div>
+          <div class="num-input-row">
+            <button class="num-btn" onclick="adjustNum('mood',-1)">−</button>
+            <div class="num-val" id="moodVal">5</div>
+            <button class="num-btn" onclick="adjustNum('mood',1)">+</button>
+          </div>
+        </div>
+      </div>
+      <textarea id="journalInput"  placeholder="今天发生了什么，想到了什么..." oninput="updateWordCount()"></textarea>
+      <div style="text-align:right;margin-top:6px;"><span class="wordcount" id="wordCount">0 字</span></div>
+      <div class="analysis-result" id="analysisResult" style="margin-top:16px;">
+        <h4>识别到的原则</h4>
+        <div class="tag-list" id="tagList"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" id="analyzeBtn" onclick="analyzeEntry()">分析</button>
+      <button class="btn-primary" id="saveBtn" onclick="saveEntry()">保存</button>
+      <button class="btn-secondary" onclick="clearWrite()">清空</button>
+      <div id="loadingIndicator" style="display:none;">
+        <div class="loading"><div class="dot-anim"><i></i><i></i><i></i></div> 分析中</div>
+      </div>
+      <span class="modal-date" id="writeDate"></span>
+    </div>
+  </div>
+</div>
+
+<!-- PRINCIPLE DETAIL MODAL -->
+<div class="modal-overlay" id="principleModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="principleModalTitle"></h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-secondary" style="padding:4px 12px;font-size:11px;" onclick="editPrinciple()">编辑</button>
+        <button class="btn-secondary" style="padding:4px 12px;font-size:11px;" onclick="mergePrincipleStart()">合并</button>
+        <button class="btn-secondary" style="padding:4px 12px;font-size:11px;color:var(--red);border-color:var(--red);" onclick="deletePrinciple()">删除</button>
+        <button class="modal-close" onclick="closeModal('principleModal')">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p id="principleModalDesc" style="font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);"></p>
+      <div id="principleEditArea" style="display:none;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);"></div>
+      <div id="principleMergeArea" style="display:none;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);"></div>
+      <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.15em;color:var(--accent);text-transform:uppercase;margin-bottom:16px;">相关案件</div>
+      <div id="principleModalCases"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY DETAIL MODAL -->
+<div class="modal-overlay" id="entryModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="entryModalDate"></h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-secondary" style="padding:4px 12px;font-size:11px;" onclick="editEntry()">编辑</button>
+        <button class="btn-secondary delete-btn" style="padding:4px 12px;font-size:11px;color:var(--red);border-color:var(--red);" onclick="deleteEntry()">删除</button>
+        <button class="modal-close" onclick="closeModal('entryModal')">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="entry-meta-bar" id="entryModalMeta"></div>
+      <div id="entryModalTags" style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <div id="entryModalText" style="font-size:16px;line-height:1.9;color:var(--text);white-space:pre-wrap;"></div>
+      <div id="entryModalNewP" style="margin-top:16px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chatModal" onclick="if(event.target===this)closeModal('chatModal')">
+  <div class="modal-box" style="max-width:600px;max-height:88vh;">
+    <div class="modal-header">
+      <h3>对话分析</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="chat-action-btn" onclick="saveChatHistory()" title="保存">保存记录</button>
+        <button class="chat-action-btn danger" onclick="clearChatHistory()" title="清除">清除</button>
+        <button class="modal-close" onclick="closeModal('chatModal')">×</button>
+      </div>
+    </div>
+    <div class="chat-history-bar">
+      <span class="chat-history-label" id="chatContextLabel">已加载你的全部数据</span>
+      <div style="display:flex;gap:8px;">
+        <button class="chat-action-btn" onclick="loadSavedChat()" id="loadSavedBtn" style="display:none;">加载已保存</button>
+      </div>
+    </div>
+    <div class="modal-body" id="chatBody" style="padding:20px;">
+      <div id="chatMessages" class="chat-messages">
+        <div class="chat-empty" id="chatEmpty">
+          <div class="chat-empty-icon">◌</div>
+          <div class="chat-empty-title">和数据聊聊</div>
+          <div class="chat-empty-desc">我知道你所有的原则和日记记录，可以根据日期或话题调取，一起分析。</div>
+          <div class="chat-suggestions">
+            <button class="chat-suggest-btn" onclick="sendSuggestion('为什么我的睡眠和灵感有关联？')">睡眠与灵感</button>
+            <button class="chat-suggest-btn" onclick="sendSuggestion('帮我分析最近一周我触发了哪些原则')">最近一周</button>
+            <button class="chat-suggest-btn" onclick="sendSuggestion('我在边界这件事上有什么规律？')">关于边界</button>
+            <button class="chat-suggest-btn" onclick="sendSuggestion('我最常忽视身体信号是什么时候？')">身体信号</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <textarea id="chatInput" placeholder="问问你的记录..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"
+        oninput="autoResizeChatInput(this)"></textarea>
+      <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  document.getElementById('themeToggle').textContent = isDark ? '☀' : '☾';
+  try { localStorage.setItem('zbsTheme', isDark ? 'dark' : 'light'); } catch(e) {}
+}
+function initTheme() {
+  try {
+    if (localStorage.getItem('zbsTheme') === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.getElementById('themeToggle').textContent = '☀';
+    } else {
+      document.getElementById('themeToggle').textContent = '☾';
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INDEXEDDB STORAGE (persistent, survives Safari refresh)
+// ══════════════════════════════════════════════════════════════════
+const DB_NAME = 'zbsDiary';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv');
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbGet(key) {
+  return new Promise((resolve) => {
+    if (!db) { resolve(null); return; }
+    try {
+      const tx = db.transaction('kv', 'readonly');
+      const req = tx.objectStore('kv').get(key);
+      req.onsuccess = () => resolve(req.result ?? null);
+      req.onerror = () => resolve(null);
+    } catch(e) { resolve(null); }
+  });
+}
+
+function dbSet(key, val) {
+  return new Promise((resolve) => {
+    if (!db) { resolve(); return; }
+    try {
+      const tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch(e) { resolve(); }
+  });
+}
+
+// Also keep localStorage as fallback
+function storageGet(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+function storageSet(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+
+// Dual write: IndexedDB + localStorage
+async function dualSet(key, val) {
+  const str = typeof val === 'string' ? val : JSON.stringify(val);
+  storageSet(key, str);
+  await dbSet(key, str);
+}
+
+async function dualGet(key) {
+  let val = await dbGet(key);
+  if (val === null) val = storageGet(key);
+  return val;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIG & DATA
+// ══════════════════════════════════════════════════════════════════
+const DEEPSEEK_API_KEY = '在这里填入你的DeepSeek API Key';
+
+const INITIAL_PRINCIPLES = [
+  { id:'p1', title:'关于边界', desc:'知道≠必须说。被碰了边界要有阻力，没阻力就会继续推进。控制信息量不等于欺骗。', cases:[
+    {day:'第35天',text:'控制信息量≠欺骗。知道不表达，大概率危险方不会发现。如发现启用最小确认+不展开。'},
+    {day:'第35天',text:'旧模型bug：只要有人问我东西，我不把知道的都说就会紧张，好像犯人。父亲系统到底对我做了什么。'},
+    {day:'第59天',text:'沉默是权利是表现之一，催促打断是压迫手段之一，两点共同点：打乱节奏。'},
+    {day:'第62天（日记）',text:'前男友出轨后挽留复合，莫名要互相查手机，看到我和别人的吐槽后质问——严重侵犯边界，但当时陷入失去感情的恐慌。'},
+  ]},
+  { id:'p2', title:'关于能量补给', desc:'睡眠、鱼油、坚果、电解质水，身体要什么给什么，不给就出错。', cases:[
+    {day:'第29天',text:'疯狂想吃鱼，吃不到身体格外烦躁。买了鱼油和坚果等待。'},
+    {day:'第32天',text:'补充300ml电解质水后疼痛减缓，出现本次整合期第一次正向情绪。'},
+    {day:'第38天',text:'喝了电解质水睡了一个小时后脑袋恢复，能通过一个小点看出人性引导方法。'},
+    {day:'第41天',text:'截止今天依然每天需要坚果、鱼油、电解质水、多睡眠。似乎是因为截止下午3点都没吃主食。'},
+    {day:'第47天',text:'对鱼油需求减弱，大脑强度未变。'},
+    {day:'第62天（日记）',text:'今天难得再次出现需要电解质水、鱼油的情况，已经有10天不吃不需要了。封档当天后台在跑。'},
+  ]},
+  { id:'p3', title:'关于产出≠价值', desc:'价值=对自身有益的事情。产出只是价值的表现方式之一，思考、内在质变同样是高价值行为。', cases:[
+    {day:'第35天',text:'价值=长期结构稳定+能力提升+方向清晰度。复利价值如我内在质变，这一个月做了非常重要的事情，价值极高，能受益一生。'},
+  ]},
+  { id:'p4', title:'关于能力>位置', desc:'别慌。位置是结果不是前提。能力到了，位置和自由自然来。', cases:[
+    {day:'第49天',text:'能力>位置，别慌。有养活自己的能力才能离开，这不冲突。'},
+    {day:'第49天',text:'如果我厉害到大于做品牌，那做品牌的人会是我。'},
+    {day:'第59天',text:'等你能顶事，一切都有了。我想要的一切都指向同一个答案：自己变得有力。真正的任何人都信服的能力浓度，而非自封。'},
+  ]},
+  { id:'p5', title:'关于独立生存能力', desc:'离开任何场域都能独立生存——这是整个自白书的底层驱动，从第一天就在跑。', cases:[
+    {day:'第4天',text:'短期：店长路线，积累经济能力。长期：风险评估方向。先有持续经济能力，再谈其他。'},
+    {day:'第43天',text:'离开任何场域都能独立生存。那时候你就会发光了。最落地的就是复制母亲，将母亲运作店的一切复制下来。'},
+    {day:'第47天',text:'今天全程靠自己卖了一副眼镜168元，从前期介绍-验光-收款，掌握技术了，很开心。'},
+    {day:'第49天',text:'有养活自己的能力才能离开，养活自己的能力=学会妈妈的一切=我现在做的事情。离开需要有能力，这不冲突。'},
+  ]},
+  { id:'p6', title:'关于节奏与顺力', desc:'顺力而行，调整本身变成推进力，不强行覆盖他人节奏。', cases:[
+    {day:'第37天',text:'想在水中如鱼得水，要顺着力道调整并让调整本身推着你达到想要的目的。顺力而行，调整变成推进力。'},
+  ]},
+  { id:'p7', title:'关于暴露度控制', desc:'在家暴露能力30-60/100。留余力默默提升自己，不需要用错误环境作训练场消耗力量。', cases:[
+    {day:'第43天',text:'暴露在家庭成员面前的能力范围规定：30-60/100。已确认自己的优秀，不需要以这个错误的环境作为训练场消耗力量。'},
+  ]},
+  { id:'p8', title:'关于不介入他人逻辑', desc:'他们的方式也能解决，我不需要介入。效率不是唯一正确，这是他们的流程不是我的项目。', cases:[
+    {day:'第34天',text:'快递员事件：我用自己的效率思维打断了他们的流程。解法：记住他们的方式也能解决，我不需要介入。'},
+  ]},
+  { id:'p9', title:'关于睡眠与灵感', desc:'睡眠达到10小时，有概率出现灵感涌现。已多次验证。', cases:[
+    {day:'第32天',text:'睡10小时醒时候有信息总结了，睡7小时醒时候感觉大脑空空。'},
+    {day:'第33天',text:'睡醒疲惫感消失，算力有上升。推测32日晚推测合理，脑内撤掉了危险检测程序，挪用回后台施工。'},
+    {day:'第54天',text:'睡了9个小时，体感明显感觉精力充沛了很多。8小时时候就没什么感觉，上9差距好大。'},
+    {day:'第57天',text:'依然9小时，睡醒精力充沛，思维流畅，有心情拆解生活总结规律了。'},
+    {day:'第62天（日记）',text:'补觉前做了自白书封档，睡醒后灵感涌现：前男友权力结构分析。差不多10小时，再次确认这个规律。'},
+  ]},
+  { id:'p10', title:'关于感知与情绪的分离', desc:'感知=身体/环境/节奏/空间变化。情绪=带有好坏评价的反应。两者不同，不能混用。', cases:[
+    {day:'第41天',text:'发现了情绪化严重的原因：把感知误理解为情绪了。感知/情绪分离算法：感知是身体环境节奏空间变化，情绪是带有好坏评价的反应。'},
+  ]},
+  { id:'p11', title:'关于信息控制≠欺骗', desc:'最小确认+不展开。知道≠必须说，控制信息量不是对人不诚实。', cases:[
+    {day:'第35天',text:'旧模型bug修正：控制信息量≠欺骗。碰到不想回答问题时可以说之后再说，改天再讲，现在不想。'},
+  ]},
+  { id:'p12', title:'关于爱的定义', desc:'用事实对待人，不用情绪压人。爷爷奶奶给的版本，正确交流的标准。', cases:[
+    {day:'第35天',text:'爷爷说非常好做的都对，肯定的语气。那种暖意是：我看到你真正做的事情，没有不对，你做的很好——而不是因为情绪变量歪曲改正事情。'},
+  ]},
+  { id:'p13', title:'关于身体信号优先', desc:'身体累了大脑还在跑时，优先级给身体。先休息再复盘，不执着当下感受。', cases:[
+    {day:'第37天',text:'脑子没有之前好用，多次愣神溜号，回答问题脑子转的也慢。原因：6天游三次，拼了6小时豆，身体累了但大脑活跃，优先级没给疲惫信号。'},
+    {day:'第38天',text:'碰到身体/逻辑/情绪过载，不要执着当下感受，先休息睡觉补充营养电解质水吃好饭放松，等缓解了复盘事件。'},
+    {day:'第38天',text:'昨天整体情绪化比理智多，因为逻辑脑过于疲惫无法归因看清。下次类似情况先休息。'},
+    {day:'第41天',text:'出现记忆力下降，截止下午3点都没吃主食，身体信号早就发出来了。'},
+  ]},
+  { id:'p14', title:'关于小步改变', desc:'想改变某件事就分步骤改变细微的点，自然而然结果就来了。不要动声色，微弱偏移就有东西改变。', cases:[
+    {day:'第41天',text:'回忆12岁压制期前教导给弟弟的家庭生存规则：想要做成某件事就分步骤改变细微的点，自然而然结果就来了。'},
+    {day:'第39天',text:'我站在旁边以为我改变不了任何，但实际上我深处其中，就像告诉行驶的车辆，只是微弱偏移就有东西改变。'},
+  ]},
+  { id:'p15', title:'关于记录诚实度', desc:'AI会对我进行虚构契合化解读，可能影响准确性。记录要尽量客观，以自己的真实体感为准。', cases:[
+    {day:'第52天',text:'感觉前面所有自白书都存在一定的自圆其说虚构现象。因为多为我的感受与AI交互得出结论，不够严谨。以后记录尽量更加客观。'},
+  ]},
+  { id:'p16', title:'关于自由需要能力', desc:'有养活自己的能力才能离开。能力浓度到了，自由就来了。不冲突。', cases:[
+    {day:'第49天',text:'有养活自己的能力才能离开，养活自己的能力=学会妈妈的一切=我现在做的事情。离开需要有能力，这不冲突。'},
+  ]},
+  { id:'p17', title:'关于沉默是权力', desc:'沉默是权力的表现之一。催促打断是压迫手段之一。两者共同点：打乱节奏。', cases:[
+    {day:'第59天',text:'沉默是权利是表现之一，催促打断是压迫手段之一，两点都有一个共同点：打乱节奏。'},
+  ]},
+  { id:'p18', title:'关于整合期规律', desc:'需要大量睡眠、电解质水、鱼油，限制高算力活动。后台在跑，前台1/10算力是正常的。等待传输结束。', cases:[
+    {day:'第29-33天',text:'神经重写期间：疯狂想吃鱼，买了鱼油坚果。清醒两小时后极度疲惫要睡觉。大脑不让看纪录片学象棋做风险评估。'},
+    {day:'第30天',text:'整体感受很混乱，出现大脑断线（遛狗发呆忘记小狗），只接受单线程，今天有2次一边打电话另一半听别的事情后来俩都没听到。'},
+    {day:'第31天',text:'今日算力1/10，没错就是这么可怜，可能连1都没有。只记录不解读。'},
+    {day:'第62天（日记）',text:'封档当天再次出现需要电解质水、鱼油。封档本身是一次高强度认知事件，身体告诉我后台在跑东西。'},
+  ]},
+  { id:'p19', title:'关于预测失败处理', desc:'预测失败后收集可用点，重新推，直到闭环。不执着于原预测，失误后修正是正常的。', cases:[
+    {day:'第21天',text:'闭环机制：预测失败→收集可用点→重推→直到闭环。处理情绪很累，对情绪变量不能预测，但我会学习完善。'},
+    {day:'第30天',text:'对27节律的看法：变化决定对它的看法。我在做最难的风险评估，观测的东西在变化，预测错误纠正是正常的。'},
+  ]},
+  { id:'p20', title:'关于父亲的本质', desc:'靠别人恐惧强大，你不恐惧他就是空壳。投入过多会无意识在意，等于容易恐惧。', cases:[
+    {day:'第40天',text:'父亲的能力像鬼，靠别人的恐惧强大。当你不在恐惧，他就是个空壳。投入过多尽力会无意识的在意=容易恐惧。'},
+  ]},
+];
+
+let principles = [];
+let entries = [];
+let currentPrincipleId = null;
+let currentTab = 'principles';
+let isSearching = false;
+let lastAnalysis = null;
+let editingEntryId = null;
+
+// Number input state
+let numValues = { mood: 5, energy: 5, sleep: 8 };
+const numLimits = { mood: [1,10], energy: [1,10], sleep: [1,14] };
+
+function adjustNum(type, delta) {
+  const [min, max] = numLimits[type];
+  numValues[type] = Math.max(min, Math.min(max, numValues[type] + delta));
+  document.getElementById(type + 'Val').textContent = numValues[type];
+}
+
+// ── CHAT STATE ──
+let chatHistory = [];
+let savedChatHistory = null;
+let isChatLoading = false;
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+function initPrinciples() {
+  principles = INITIAL_PRINCIPLES.map(p => {
+    const newCases = p.cases.map((c, idx) => ({ ...c, timestamp: 0, originalIndex: idx }));
+    return { ...p, cases: newCases, lastUpdate: 0 };
+  });
+}
+
+async function init() {
+  initTheme();
+  initPrinciples();
+
+  // Open IndexedDB
+  try { await openDB(); } catch(e) { console.warn('IndexedDB unavailable, using localStorage only'); }
+
+  // Load entries from dual storage
+  try {
+    const savedEntries = await dualGet('zbsEntries');
+    if (savedEntries) entries = JSON.parse(savedEntries);
+  } catch(e) {}
+
+  // Load user principles
+  try {
+    const savedUserP = await dualGet('zbsUserPrinciples');
+    if (savedUserP) {
+      const userP = JSON.parse(savedUserP);
+      userP.forEach(p => {
+        if (!principles.find(x => x.title === p.title)) {
+          p.cases = p.cases.map((c, idx) => ({ ...c, timestamp: c.timestamp || 0, originalIndex: idx }));
+          p.lastUpdate = p.lastUpdate || 0;
+          principles.push(p);
+        }
+      });
+    }
+  } catch(e) {}
+
+  // Load saved chat
+  try {
+    const sc = await dualGet('zbsSavedChat');
+    if (sc) {
+      savedChatHistory = JSON.parse(sc);
+      document.getElementById('loadSavedBtn').style.display = '';
+    }
+  } catch(e) {}
+
+  rebuildFromEntries();
+  updateStats();
+  renderSidebar();
+  document.getElementById('writeDate').textContent = new Date().toLocaleDateString('zh-CN');
+
+  // Register service worker for offline
+  registerSW();
+}
+
+function rebuildFromEntries() {
+  // 保存当前内存里的用户原则，initPrinciples 会重置 principles 数组
+  const initIds = new Set(INITIAL_PRINCIPLES.map(p => p.id));
+  const memoryUserP = principles.filter(p => !initIds.has(p.id));
+
+  initPrinciples();
+
+  // 优先用内存里的用户原则（最新），再用 localStorage 补充没有的
+  const mergedTitles = new Set();
+  memoryUserP.forEach(p => {
+    principles.push({ ...p });
+    mergedTitles.add(p.title);
+  });
+
+  try {
+    const savedUserP = storageGet('zbsUserPrinciples');
+    if (savedUserP) {
+      const userP = JSON.parse(savedUserP);
+      userP.forEach(p => {
+        if (mergedTitles.has(p.title)) {
+          // 已在内存里，只补充内存没有的 cases
+          const existing = principles.find(x => x.title === p.title);
+          if (existing) {
+            p.cases.forEach(c => {
+              if (!existing.cases.find(ec => ec.day === c.day && ec.text === c.text)) {
+                existing.cases.push({ ...c, timestamp: c.timestamp || 0 });
+              }
+            });
+          }
+        } else {
+          // localStorage 有但内存没有（比如旧备份恢复）
+          principles.push({ ...p, lastUpdate: p.lastUpdate || 0 });
+          mergedTitles.add(p.title);
+        }
+      });
+    }
+  } catch(e) {}
+
+  entries.forEach(e => {
+    if (e.tags && e.summary) {
+      e.tags.forEach(tag => {
+        const p = principles.find(x => x.title === tag);
+        if (p) {
+          const dayLabel = e.date + '（日记）';
+          if (!p.cases.find(c => c.day === dayLabel && c.text === e.summary)) {
+            let timestamp = 0;
+            try {
+              const dateParts = e.date.split('/');
+              if (dateParts.length === 3) timestamp = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2])).getTime();
+            } catch (ex) {}
+            p.cases.push({ day: dayLabel, text: e.summary, timestamp, originalIndex: p.cases.length });
+          }
+        }
+      });
+    }
+  });
+
+  principles.forEach(p => {
+    p.count = p.cases.length;
+    const maxTimestamp = p.cases.length ? Math.max(...p.cases.map(c => c.timestamp || 0)) : 0;
+    p.lastUpdate = maxTimestamp > 0 ? maxTimestamp : 0;
+  });
+}
+
+async function save() {
+  await dualSet('zbsEntries', JSON.stringify(entries));
+  const initIds = new Set(INITIAL_PRINCIPLES.map(p => p.id));
+  const userP = principles.filter(p => !initIds.has(p.id));
+  await dualSet('zbsUserPrinciples', JSON.stringify(userP));
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════════
+function renderSidebar() {
+  const el = document.getElementById('sidebarContent');
+  if (currentTab === 'principles') {
+    const sorted = [...principles].sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0));
+    el.innerHTML = sorted.map(p => `
+      <div class="principle-item ${p.id === currentPrincipleId ? 'active' : ''}" onclick="selectPrinciple('${p.id}')">
+        <div class="principle-title">${p.title}<span class="count-badge">×${p.count}</span></div>
+        <div class="principle-meta">${p.desc.slice(0, 40)}...</div>
+      </div>
+    `).join('');
+  } else if (currentTab === 'entries') {
+    el.innerHTML = entries.length === 0
+      ? '<div style="padding:20px;font-size:13px;color:var(--muted);text-align:center;">还没有日记</div>'
+      : entries.slice().reverse().map(e => `
+        <div class="entry-item" onclick="showEntry('${e.id}')">
+          <div class="entry-date">${e.date}</div>
+          <div class="entry-preview">${e.text}</div>
+          <div class="entry-tags">${(e.tags||[]).map(t=>`<span class="entry-tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('');
+  } else if (currentTab === 'calendar') {
+    el.innerHTML = '<div class="calendar-wrap" id="calendarWrap"></div>';
+    renderCalendar();
+  }
+}
+
+function updateStats() {
+  const el = document.getElementById('headerStats');
+  if (el) el.textContent = `${principles.length} 原则 · ${entries.length} 篇`;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['principles','entries','calendar'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  renderSidebar();
+}
+
+function setBottomNav(tab) {
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  const map = { principles:'bnPrinciples', entries:'bnEntries', calendar:'bnCalendar', chat:'bnChat' };
+  const el = document.getElementById(map[tab]);
+  if (el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PENDING TAB (new feature)
+// ══════════════════════════════════════════════════════════════════
+function renderPendingInTools(el) {
+  let pending = {};
+  try { const raw = storageGet('zbsPendingPrinciples'); if (raw) pending = JSON.parse(raw); } catch(e) {}
+  const keys = Object.keys(pending);
+  if (keys.length === 0) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;"><div style="font-size:24px;opacity:0.3;margin-bottom:10px;">◇</div><div style="font-size:13px;color:var(--muted);line-height:1.7;">暂无待录原则。<br>写日记分析后出现的候选原则会在这里，达到总分≥3且跨2天自动升级。</div></div>';
+    return;
+  }
+  el.innerHTML = keys.map(title => {
+    const p = pending[title];
+    return '<div class="pending-card" data-title="' + title + '">' +
+      '<div class="pending-title">' + (p.title || title) + '</div>' +
+      '<div class="pending-desc">' + (p.desc || '暂无描述') + '</div>' +
+      '<div class="pending-meta">总分 ' + Number(p.score||0).toFixed(1) + ' · 跨 ' + ((p.appearDays||[]).length) + ' 天 · 达到总分≥3且跨2天自动升级</div>' +
+      (p.cases||[]).map(function(c){ return '<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:4px;padding-left:8px;border-left:2px solid var(--border);">' + c.day + '：' + c.text + '</div>'; }).join('') +
+      '<div class="pending-actions" style="margin-top:10px;">' +
+        '<button class="btn-primary" style="padding:4px 14px;font-size:10px;" onclick="promotePending(\'' + title + '\')">立即升级</button>' +
+        '<button class="btn-secondary" style="padding:4px 12px;font-size:10px;color:var(--red);border-color:var(--red);" onclick="deletePending(\'' + title + '\')">删除</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+async function promotePending(key) {
+  let pending = {};
+  try { const raw = storageGet('zbsPendingPrinciples'); if (raw) pending = JSON.parse(raw); } catch(e) {}
+  const p = pending[key];
+  if (!p) return;
+
+  const newId = 'u' + Date.now() + Math.random().toString(36).slice(2,5);
+  const promoted = {
+    id: newId, title: p.title, desc: p.desc || '',
+    cases: (p.cases||[]).map((c, idx) => ({ ...c, timestamp: c.timestamp || 0, originalIndex: idx })),
+    count: p.cases.length,
+    lastUpdate: Date.now()
+  };
+  principles.push(promoted);
+  delete pending[key];
+
+  storageSet('zbsPendingPrinciples', JSON.stringify(pending));
+  await dualSet('zbsPendingPrinciples', JSON.stringify(pending));
+  await save();
+  updateStats();
+  renderSidebar();
+  renderToolsContent();
+}
+
+async function deletePending(key) {
+  let pending = {};
+  try { const raw = storageGet('zbsPendingPrinciples'); if (raw) pending = JSON.parse(raw); } catch(e) {}
+  delete pending[key];
+  storageSet('zbsPendingPrinciples', JSON.stringify(pending));
+  await dualSet('zbsPendingPrinciples', JSON.stringify(pending));
+  renderSidebar();
+  renderToolsContent();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TRENDS TAB (mood/energy/sleep visualization)
+// ══════════════════════════════════════════════════════════════════
+let trendPeriod = 14;
+let activeTrend = 'sleep';
+let showAllTrends = false;
+let allTrendPressTimer = null;
+
+
+function renderTrendsTab(el) {
+  if (entries.length === 0) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;font-size:14px;color:var(--muted);">写几条日记后这里会显示心情、能量、睡眠的趋势图</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="trend-chart">
+      <div class="trend-period-btns">
+        <button class="trend-period-btn ${trendPeriod===7?'active':''}" onclick="trendPeriod=7;renderSidebar()">7天</button>
+        <button class="trend-period-btn ${trendPeriod===14?'active':''}" onclick="trendPeriod=14;renderSidebar()">14天</button>
+        <button class="trend-period-btn ${trendPeriod===30?'active':''}" onclick="trendPeriod=30;renderSidebar()">30天</button>
+        <button class="trend-period-btn ${trendPeriod===9999?'active':''}" onclick="trendPeriod=9999;renderSidebar()">全部</button>
+      </div>
+      <canvas id="trendCanvas"></canvas>
+      <div id="trendInsights" style="margin-top:16px;"></div>
+    </div>
+  `;
+  setTimeout(drawTrendChart, 50);
+}
+
+function drawTrendChart() {
+  const canvas = document.getElementById('trendCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  const sorted = [...entries].filter(e => e.mood !== undefined || e.energy !== undefined || e.sleep !== undefined).sort((a,b) => parseEntryDate(a.date) - parseEntryDate(b.date));
+  const sliced = trendPeriod === 9999 ? sorted : sorted.slice(-trendPeriod);
+  if (!sliced.length) return;
+
+  const w = Math.max(280, canvas.parentElement.clientWidth - 24);
+  const h = 200;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const isDark = document.documentElement.classList.contains('dark');
+  const accentColor = isDark ? '#c9a96e' : '#e8879a';
+  const energyColor = isDark ? '#6bb88a' : '#5aad7a';
+  const sleepColor = isDark ? '#7aa3d9' : '#6b8ec9';
+  const mutedColor = isDark ? '#3a3a3a' : '#e8ddd8';
+  const textColor = isDark ? '#6b6660' : '#b09a94';
+  const pad = { top: 24, right: 16, bottom: 36, left: 32 };
+  const plotW = w - pad.left - pad.right;
+  const plotH = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const maxVal = showAllTrends ? 14 : (activeTrend === 'sleep' ? 14 : 10);
+  const yLabels = maxVal === 14 ? [14, 10.5, 7, 3.5, 0] : [10, 7.5, 5, 2.5, 0];
+
+  ctx.strokeStyle = mutedColor;
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (plotH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+  }
+
+  ctx.fillStyle = textColor;
+  ctx.font = '10px SF Mono, Menlo, monospace';
+  ctx.textAlign = 'right';
+  yLabels.forEach((v, i) => {
+    ctx.fillText(String(Math.round(v * 10) / 10).replace('.0',''), pad.left - 6, pad.top + (plotH / 4) * i + 4);
+  });
+
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(sliced.length / 6));
+  sliced.forEach((e, i) => {
+    if (i % step === 0 || i === sliced.length - 1) {
+      const x = sliced.length === 1 ? (pad.left + plotW / 2) : pad.left + (plotW / (sliced.length - 1)) * i;
+      const parts = e.date.split('/');
+      const label = parts.length >= 3 ? `${parts[1]}/${parts[2]}` : e.date.slice(-5);
+      ctx.fillText(label, x, h - pad.bottom + 16);
+    }
+  });
+
+  function drawLine(color, key, ownMaxVal) {
+    if (sliced.length < 2) {
+      const rawVal = Number(sliced[0][key]);
+      if (!Number.isFinite(rawVal)) return;
+      const val = Math.max(0, Math.min(ownMaxVal, rawVal));
+      const x = pad.left + plotW / 2;
+      const y = pad.top + plotH - (val / maxVal) * plotH;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+      return;
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+
+    sliced.forEach((e, i) => {
+      const rawVal = Number(e[key]);
+      if (!Number.isFinite(rawVal)) return;
+      const val = Math.max(0, Math.min(ownMaxVal, rawVal));
+      const x = pad.left + (plotW / (sliced.length - 1)) * i;
+      const y = pad.top + plotH - (val / maxVal) * plotH;
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    });
+    if (started) ctx.stroke();
+
+    ctx.fillStyle = color;
+    sliced.forEach((e, i) => {
+      const rawVal = Number(e[key]);
+      if (!Number.isFinite(rawVal)) return;
+      const val = Math.max(0, Math.min(ownMaxVal, rawVal));
+      const x = pad.left + (plotW / (sliced.length - 1)) * i;
+      const y = pad.top + plotH - (val / maxVal) * plotH;
+      ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  if (showAllTrends) {
+    drawLine(sleepColor, 'sleep', 14);
+    drawLine(energyColor, 'energy', 10);
+    drawLine(accentColor, 'mood', 10);
+  } else {
+    const colorMap = { sleep: sleepColor, energy: energyColor, mood: accentColor };
+    const maxMap = { sleep: 14, energy: 10, mood: 10 };
+    drawLine(colorMap[activeTrend], activeTrend, maxMap[activeTrend]);
+  }
+
+  const legends = [
+    { key:'sleep', label:'睡眠', color:sleepColor },
+    { key:'energy', label:'能量', color:energyColor },
+    { key:'mood', label:'心情', color:accentColor },
+  ];
+  ctx.font = '10px SF Mono, Menlo, monospace';
+  ctx.textAlign = 'left';
+  const legendAreas = [];
+  let totalWidth = 0;
+  legends.forEach((l, idx) => {
+    totalWidth += 18 + ctx.measureText(l.label).width + (idx < legends.length - 1 ? 8 : 0);
+  });
+  let lx = w - pad.right - totalWidth;
+  const ly = 10;
+
+  legends.forEach(l => {
+    ctx.fillStyle = l.color;
+    ctx.beginPath();
+    ctx.arc(lx + 5, ly + 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = (!showAllTrends && l.key === activeTrend) || (showAllTrends) ? l.color : textColor;
+    ctx.fillText(l.label, lx + 12, ly + 5);
+    const tw = ctx.measureText(l.label).width;
+    legendAreas.push({ x: lx - 2, y: ly - 8, w: 18 + tw, h: 18, key: l.key });
+    lx += 18 + tw + 8;
+  });
+
+  canvas.onclick = function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    for (const a of legendAreas) {
+      if (x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h) {
+        showAllTrends = false;
+        activeTrend = a.key;
+        drawTrendChart();
+        return;
+      }
+    }
+  };
+
+  renderTrendInsights(sliced);
+}
+
+function renderTrendInsights(data) {
+  const el = document.getElementById('trendInsights');
+  if (!el || data.length < 1) { if (el) el.innerHTML = ''; return; }
+
+  const avgMood = (data.reduce((s,e) => s + (Number(e.mood)||0), 0) / data.length).toFixed(1);
+  const avgEnergy = (data.reduce((s,e) => s + (Number(e.energy)||0), 0) / data.length).toFixed(1);
+  const avgSleep = (data.reduce((s,e) => s + (Number(e.sleep)||0), 0) / data.length).toFixed(1);
+
+  const highSleep = data.filter(e => Number(e.sleep) >= 9);
+  const lowSleep = data.filter(e => Number(e.sleep) < 8);
+  const highSleepMood = highSleep.length ? (highSleep.reduce((s,e) => s + (Number(e.mood)||0), 0) / highSleep.length).toFixed(1) : '—';
+  const lowSleepMood = lowSleep.length ? (lowSleep.reduce((s,e) => s + (Number(e.mood)||0), 0) / lowSleep.length).toFixed(1) : '—';
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:18px;color:var(--accent);">${avgMood}</div>
+        <div style="font-size:11px;color:var(--muted);">平均心情</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:18px;color:var(--green);">${avgEnergy}</div>
+        <div style="font-size:11px;color:var(--muted);">平均能量</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:18px;color:#6b8ec9;">${avgSleep}</div>
+        <div style="font-size:11px;color:var(--muted);">平均睡眠</div>
+      </div>
+    </div>
+    ${highSleep.length >= 2 && lowSleep.length >= 2 ? `
+    <div style="background:var(--surface);border-radius:8px;padding:12px;font-size:13px;color:var(--muted);line-height:1.7;">
+      睡眠≥9 的日子平均心情 <span style="color:var(--accent);font-family:var(--font-mono);">${highSleepMood}</span>，
+      睡眠<8 的日子平均心情 <span style="color:var(--accent);font-family:var(--font-mono);">${lowSleepMood}</span>
+    </div>` : ''}
+  `;
+}
+
+function parseEntryDate(dateStr) {
+  const m = dateStr.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3])).getTime();
+  return new Date(dateStr).getTime() || 0;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// PRINCIPLE DETAIL + EDIT + MERGE
+// ══════════════════════════════════════════════════════════════════
+function selectPrinciple(id) {
+  currentPrincipleId = id;
+  const p = principles.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('principleModalTitle').textContent = p.title;
+  document.getElementById('principleModalDesc').textContent = p.desc;
+  document.getElementById('principleEditArea').style.display = 'none';
+  document.getElementById('principleMergeArea').style.display = 'none';
+
+  const sortedCases = [...p.cases].sort((a, b) => {
+    const ta = a.timestamp || 0; const tb = b.timestamp || 0;
+    if (ta !== tb) return tb - ta;
+    return (a.originalIndex || 0) - (b.originalIndex || 0);
+  });
+
+  const casesHtml = sortedCases.map((c, i) => {
+    const dayClean = c.day.replace('（日记）', '').trim();
+    const linked = entries.find(e => e.date === dayClean && e.summary && (e.summary === c.text || c.text.includes(e.summary.slice(0,10))));
+    const caseId = 'case-' + id + '-' + i;
+    const needFold = c.text.length > 100;
+
+    // ── 改动：editBtn + deleteBtn 并排 ──
+    const editBtn = `<span class="case-edit-btn" data-pid="${id}" data-idx="${i}" style="margin-left:8px;color:var(--muted);font-size:10px;font-family:var(--font-mono);cursor:pointer;" title="编辑">✎</span>`;
+    const deleteBtn = `<span class="case-delete-btn" data-pid="${id}" data-idx="${i}" style="margin-left:6px;color:var(--muted);font-size:10px;font-family:var(--font-mono);cursor:pointer;opacity:0.45;transition:color 0.15s,opacity 0.15s;" title="删除此条">✕</span>`;
+    const actionBtns = editBtn + deleteBtn;
+
+    if (linked) {
+      return `<div class="case-card" id="${caseId}">
+        <div class="case-day" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>${c.day}${actionBtns}</span>
+          <span class="case-link-btn" data-eid="${linked.id}" style="color:var(--muted);font-size:10px;font-family:var(--font-mono);cursor:pointer;">↗ 完整日记</span>
+        </div>
+        <div class="case-text case-link-btn" data-eid="${linked.id}" style="cursor:pointer;">${c.text}</div>
+      </div>`;
+    } else if (needFold) {
+      return `<div class="case-card" id="${caseId}">
+        <div class="case-day" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>${c.day}${actionBtns}</span>
+          <span id="${caseId}-icon" class="case-fold-btn" data-cid="${caseId}" style="color:var(--muted);font-size:10px;font-family:var(--font-mono);cursor:pointer;">▸ 展开</span>
+        </div>
+        <div class="case-text case-fold-btn" id="${caseId}-preview" data-cid="${caseId}" style="cursor:pointer;">${c.text.slice(0,100)}…</div>
+        <div id="${caseId}-full" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--muted);font-size:14px;line-height:1.8;">${c.text}</div>
+      </div>`;
+    } else {
+      return `<div class="case-card" id="${caseId}">
+        <div class="case-day">${c.day}${actionBtns}</div>
+        <div class="case-text">${c.text}</div>
+      </div>`;
+    }
+  }).join('') || '<div style="color:var(--muted);font-size:14px;">暂无记录</div>';
+
+  const container = document.getElementById('principleModalCases');
+  container.innerHTML = casesHtml;
+  container.onclick = function(e) {
+    const editBtn = e.target.closest('.case-edit-btn');
+    const delBtn = e.target.closest('.case-delete-btn');
+    const linkBtn = e.target.closest('.case-link-btn');
+    const foldBtn = e.target.closest('.case-fold-btn');
+    if (editBtn) { e.stopPropagation(); editCase(editBtn.dataset.pid, parseInt(editBtn.dataset.idx)); return; }
+    // ── 改动：处理删除按钮点击 ──
+    if (delBtn) { e.stopPropagation(); deleteCase(delBtn.dataset.pid, parseInt(delBtn.dataset.idx)); return; }
+    if (linkBtn) { closeModal('principleModal'); showEntry(linkBtn.dataset.eid); return; }
+    if (foldBtn) { toggleCase(foldBtn.dataset.cid); return; }
+  };
+
+  document.getElementById('principleModal').classList.add('visible');
+  renderSidebar();
+}
+
+function editPrinciple() {
+  const p = principles.find(x => x.id === currentPrincipleId);
+  if (!p) return;
+  const area = document.getElementById('principleEditArea');
+  area.style.display = 'block';
+  area.innerHTML = `
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">标题</div>
+      <input type="text" id="editPTitle" value="${p.title}" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px;font-size:15px;border-radius:6px;outline:none;">
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">描述</div>
+      <textarea id="editPDesc" rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px;font-size:14px;line-height:1.7;border-radius:6px;outline:none;resize:vertical;">${p.desc}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary" style="padding:6px 16px;font-size:11px;" onclick="savePrincipleEdit()">保存</button>
+      <button class="btn-secondary" style="padding:6px 12px;font-size:11px;" onclick="document.getElementById('principleEditArea').style.display='none'">取消</button>
+    </div>
+  `;
+}
+
+async function savePrincipleEdit() {
+  const p = principles.find(x => x.id === currentPrincipleId);
+  if (!p) return;
+  const oldTitle = p.title;
+  const newTitle = document.getElementById('editPTitle').value.trim();
+  const newDesc = document.getElementById('editPDesc').value.trim();
+  if (!newTitle) return;
+
+  if (oldTitle !== newTitle) {
+    entries.forEach(e => {
+      if (e.tags) e.tags = e.tags.map(t => t === oldTitle ? newTitle : t);
+    });
+  }
+
+  p.title = newTitle;
+  p.desc = newDesc;
+  document.getElementById('principleEditArea').style.display = 'none';
+  document.getElementById('principleModalTitle').textContent = newTitle;
+  document.getElementById('principleModalDesc').textContent = newDesc;
+
+  await save();
+  updateStats();
+  renderSidebar();
+}
+
+async function deletePrinciple() {
+  const p = principles.find(x => x.id === currentPrincipleId);
+  if (!p) return;
+  const title = p.title;
+  principles = principles.filter(x => x.id !== currentPrincipleId);
+  entries.forEach(e => {
+    if (e.tags) e.tags = e.tags.filter(t => t !== title);
+  });
+  currentPrincipleId = null;
+  await save();
+  updateStats();
+  renderSidebar();
+  closeModal('principleModal');
+}
+
+function mergePrincipleStart() {
+  const p = principles.find(x => x.id === currentPrincipleId);
+  if (!p) return;
+  const area = document.getElementById('principleMergeArea');
+  area.style.display = 'block';
+  const others = principles.filter(x => x.id !== currentPrincipleId);
+  area.innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">选择要合并进来的原则（案例将归拢到当前原则下）：</div>
+    <div style="max-height:200px;overflow-y:auto;">
+      ${others.map(o => `
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:14px;color:var(--text);">
+          <input type="checkbox" value="${o.id}" class="merge-check"> ${o.title} <span style="color:var(--muted);font-size:11px;">(×${o.count})</span>
+        </label>
+      `).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn-primary" style="padding:6px 16px;font-size:11px;" onclick="executeMerge()">合并</button>
+      <button class="btn-secondary" style="padding:6px 12px;font-size:11px;" onclick="document.getElementById('principleMergeArea').style.display='none'">取消</button>
+    </div>
+  `;
+}
+
+async function executeMerge() {
+  const target = principles.find(x => x.id === currentPrincipleId);
+  if (!target) return;
+  const checks = document.querySelectorAll('.merge-check:checked');
+  if (checks.length === 0) return;
+
+  checks.forEach(chk => {
+    const src = principles.find(x => x.id === chk.value);
+    if (!src) return;
+    // Move cases
+    src.cases.forEach(c => {
+      if (!target.cases.find(tc => tc.day === c.day && tc.text === c.text)) {
+        target.cases.push({ ...c, originalIndex: target.cases.length });
+      }
+    });
+    // Update entries referencing source
+    entries.forEach(e => {
+      if (e.tags) e.tags = e.tags.map(t => t === src.title ? target.title : t);
+    });
+    // Remove source
+    principles = principles.filter(x => x.id !== src.id);
+  });
+
+  target.count = target.cases.length;
+  target.lastUpdate = Date.now();
+  document.getElementById('principleMergeArea').style.display = 'none';
+
+  await save();
+  updateStats();
+  selectPrinciple(currentPrincipleId);
+}
+
+function toggleCase(caseId) {
+  const preview = document.getElementById(caseId + '-preview');
+  const full = document.getElementById(caseId + '-full');
+  const icon = document.getElementById(caseId + '-icon');
+  if (!full) return;
+  const expanded = full.style.display !== 'none';
+  full.style.display = expanded ? 'none' : 'block';
+  if (preview) preview.style.display = expanded ? 'block' : 'none';
+  if (icon) icon.textContent = expanded ? '▸ 展开' : '▾ 收起';
+}
+
+function editCase(principleId, caseIdx) {
+  const p = principles.find(x => x.id === principleId);
+  if (!p || !p.cases[caseIdx]) return;
+  const c = p.cases[caseIdx];
+  const caseId = 'case-' + principleId + '-' + caseIdx;
+  const card = document.getElementById(caseId);
+  if (!card) return;
+  card.querySelectorAll('.case-text, .case-edit-area').forEach(el => el.style.display = 'none');
+  const wrap = document.createElement('div');
+  wrap.className = 'case-edit-area';
+  wrap.style.marginTop = '8px';
+  const ta = document.createElement('textarea');
+  ta.id = caseId + '-edit'; ta.value = c.text; ta.rows = 4;
+  ta.style.cssText = 'width:100%;background:var(--surface);border:1px solid var(--accent);color:var(--text);font-family:var(--font-serif);font-size:14px;line-height:1.8;padding:8px;resize:vertical;outline:none;box-sizing:border-box;border-radius:8px;';
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn-primary'; saveBtn.style.cssText = 'padding:4px 14px;font-size:11px;';
+  saveBtn.textContent = '保存'; saveBtn.onclick = () => saveCaseEdit(principleId, caseIdx, caseId);
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-secondary'; cancelBtn.style.cssText = 'padding:4px 12px;font-size:11px;';
+  cancelBtn.textContent = '取消'; cancelBtn.onclick = () => selectPrinciple(principleId);
+  btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
+  wrap.appendChild(ta); wrap.appendChild(btnRow); card.appendChild(wrap); ta.focus();
+}
+
+async function saveCaseEdit(principleId, caseIdx, caseId) {
+  const p = principles.find(x => x.id === principleId);
+  if (!p || !p.cases[caseIdx]) return;
+  const ta = document.getElementById(caseId + '-edit');
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (!newText) return;
+  p.cases[caseIdx].text = newText;
+  const dayClean = p.cases[caseIdx].day.replace('（日记）', '').trim();
+  const linked = entries.find(e => e.date === dayClean && e.summary);
+  if (linked) linked.summary = newText;
+  await save();
+  selectPrinciple(principleId);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── 新增：删除单条案例卡（不删日记）──
+// ══════════════════════════════════════════════════════════════════
+async function deleteCase(principleId, caseIdx) {
+  const p = principles.find(x => x.id === principleId);
+  if (!p) return;
+
+  // sortedCases 里的 idx 对应的是排序后第 i 条，需要通过 data-idx 找到真实 cases 中的索引
+  // 我们在渲染时 i 是 sortedCases 的下标，但实际删除要用原始 cases 数组
+  // 解决方案：在渲染时存的 data-idx 就是 sortedCases 的下标，
+  // 所以这里先重建 sortedCases，找到对应的 originalIndex，再从 p.cases 里真正删除
+
+  const sortedCases = [...p.cases].sort((a, b) => {
+    const ta = a.timestamp || 0; const tb = b.timestamp || 0;
+    if (ta !== tb) return tb - ta;
+    return (a.originalIndex || 0) - (b.originalIndex || 0);
+  });
+
+  const targetCase = sortedCases[caseIdx];
+  if (!targetCase) return;
+
+  const caseId = 'case-' + principleId + '-' + caseIdx;
+  const card = document.getElementById(caseId);
+  const delSpan = card ? card.querySelector('.case-delete-btn') : null;
+
+  // 两次点击确认，防误触
+  if (delSpan && delSpan.getAttribute('data-confirming') !== '1') {
+    delSpan.textContent = '确认?';
+    delSpan.style.color = 'var(--red)';
+    delSpan.style.opacity = '1';
+    delSpan.setAttribute('data-confirming', '1');
+    setTimeout(() => {
+      if (delSpan && delSpan.getAttribute('data-confirming') === '1') {
+        delSpan.textContent = '✕';
+        delSpan.style.color = 'var(--muted)';
+        delSpan.style.opacity = '0.45';
+        delSpan.removeAttribute('data-confirming');
+      }
+    }, 3000);
+    return;
+  }
+
+  // 从原始 cases 里找到并删除这条（按 day + text 精确匹配）
+  const realIdx = p.cases.findIndex(c => c.day === targetCase.day && c.text === targetCase.text);
+  if (realIdx !== -1) {
+    p.cases.splice(realIdx, 1);
+  }
+
+  // 重新编号 originalIndex
+  p.cases.forEach((c, i) => { c.originalIndex = i; });
+  p.count = p.cases.length;
+  p.lastUpdate = p.cases.length
+    ? Math.max(...p.cases.map(c => c.timestamp || 0))
+    : 0;
+
+  // 注意：不动 entries，日记保留完整
+
+  await save();
+  updateStats();
+  selectPrinciple(principleId); // 刷新原则详情视图
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ENTRY DETAIL
+// ══════════════════════════════════════════════════════════════════
+function showEntry(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  editingEntryId = id;
+  document.getElementById('entryModalDate').textContent = e.date;
+
+  const metaItems = [];
+  if (e.mood !== undefined) metaItems.push({ label: '心情', val: e.mood + '/10' });
+  if (e.energy !== undefined) metaItems.push({ label: '能量', val: e.energy + '/10' });
+  if (e.sleep !== undefined) metaItems.push({ label: '睡眠', val: e.sleep + 'h' });
+  document.getElementById('entryModalMeta').innerHTML = metaItems.map(m => `
+    <div class="entry-meta-item">
+      <span class="entry-meta-label">${m.label}</span>
+      <span class="entry-meta-val">${m.val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('entryModalTags').innerHTML = (e.tags||[]).map(t =>
+    `<span class="tag-pill" onclick="selectPrincipleByTitle('${t}');closeModal('entryModal')">${t}</span>`
+  ).join('');
+  document.getElementById('entryModalText').textContent = e.text;
+
+  // BUG FIX: show newPrinciple if stored on entry
+  const npArea = document.getElementById('entryModalNewP');
+  if (e.newPrinciple) {
+    npArea.innerHTML = `<div style="margin-top:12px;padding:10px;background:var(--accent-dim);border-radius:8px;font-size:13px;color:var(--accent);font-family:var(--font-mono);">✦ 候选原则：${e.newPrinciple}${e.newDesc ? ' — ' + e.newDesc : ''}</div>`;
+  } else {
+    npArea.innerHTML = '';
+  }
+
+  document.getElementById('entryModal').classList.add('visible');
+}
+
+function editEntry() {
+  if (!editingEntryId) return;
+  const e = entries.find(x => x.id === editingEntryId);
+  if (!e) return;
+  closeModal('entryModal');
+  document.getElementById('journalInput').value = e.text;
+  document.getElementById('wordCount').textContent = e.text.length + ' 字';
+  numValues.mood = e.mood || 5; numValues.energy = e.energy || 5; numValues.sleep = e.sleep || 8;
+  document.getElementById('moodVal').textContent = numValues.mood;
+  document.getElementById('energyVal').textContent = numValues.energy;
+  document.getElementById('sleepVal').textContent = numValues.sleep;
+  document.getElementById('writeModalTitle').textContent = '编辑 · ' + e.date;
+  document.getElementById('writeDate').textContent = e.date;
+
+  // BUG FIX: restore newPrinciples from entry
+  lastAnalysis = {
+    tags: e.tags || [], summary: e.summary || '',
+    newPrinciples: e.newPrinciple ? [{ title: e.newPrinciple, desc: e.newDesc || '' }] : []
+  };
+
+  let html = lastAnalysis.tags.length
+    ? lastAnalysis.tags.map(t => `<span class="tag-pill" onclick="selectPrincipleByTitle('${t}')">${t}</span>`).join('')
+    : '<span style="font-size:13px;color:var(--muted);">未匹配原则</span>';
+  if (lastAnalysis.summary) html += `<div style="margin-top:12px;font-size:13px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:10px;">${lastAnalysis.summary}</div>`;
+  if (lastAnalysis.newPrinciples?.length) {
+    html += `<div style="margin-top:10px;font-size:12px;color:var(--accent);font-family:var(--font-mono);">✦ 候选原则：${lastAnalysis.newPrinciples[0].title}</div>`;
+  }
+  document.getElementById('tagList').innerHTML = html;
+  document.getElementById('analysisResult').classList.add('visible');
+  document.getElementById('analyzeBtn').setAttribute('data-edit-id', e.id);
+  document.getElementById('writeModal').classList.add('visible');
+}
+
+function deleteEntry() {
+  if (!editingEntryId) return;
+  const btn = document.querySelector('#entryModal .delete-btn');
+  if (btn && btn.getAttribute('data-confirming') === '1') {
+    const entry = entries.find(x => x.id === editingEntryId);
+    if (entry) { removeEntryFromPrinciples(entry); entries = entries.filter(x => x.id !== editingEntryId); }
+    principles.forEach(p => {
+      p.count = p.cases.length;
+      const maxTimestamp = p.cases.length ? Math.max(...p.cases.map(c => c.timestamp || 0)) : 0;
+      p.lastUpdate = maxTimestamp > 0 ? maxTimestamp : 0;
+    });
+    save(); updateStats(); renderSidebar(); closeModal('entryModal'); editingEntryId = null;
+  } else {
+    if (btn) {
+      btn.textContent = '确认删除'; btn.setAttribute('data-confirming', '1');
+      setTimeout(() => { if (btn) { btn.textContent = '删除'; btn.removeAttribute('data-confirming'); } }, 3000);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ANALYSIS (improved: 2-step)
+// ══════════════════════════════════════════════════════════════════
+let lastSubmitTime = 0;
+
+function normalizePendingTitle(title) {
+  return (title || '').replace(/^关于/, '').replace(/原则|问题/g, '').trim();
+}
+function buildPendingKey(title) {
+  return normalizePendingTitle(title).toLowerCase().replace(/\s+/g, '');
+}
+function isGenericPrincipleTitle(title) {
+  const t = normalizePendingTitle(title);
+  if (!t) return true;
+  if (t.length > 6) return true;
+  return ['成长','生活','问题','改变','状态','情绪','关系','事情'].includes(t);
+}
+function getTodayKeyFromDate(dateStr) {
+  const m = String(dateStr || '').match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+async function analyzeEntry() {
+  const now = Date.now();
+  if (now - lastSubmitTime < 2000) return;
+  lastSubmitTime = now;
+
+  const text = document.getElementById('journalInput').value.trim();
+  if (!text) return;
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('loadingIndicator').style.display = 'block';
+  document.getElementById('analysisResult').classList.remove('visible');
+
+  const key = getApiKey();
+  if (!key || key.includes('填入')) {
+    lastAnalysis = { tags: [], summary: '', newPrinciples: [] };
+    document.getElementById('tagList').innerHTML = '<span style="font-size:13px;color:var(--muted);">未配置API Key，无法分析</span>';
+    document.getElementById('analysisResult').classList.add('visible');
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('loadingIndicator').style.display = 'none';
+    return;
+  }
+
+  const principleList = principles.map(p => `${p.title}：${p.desc}`).join('\n');
+
+  try {
+    const res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 600,
+        messages: [
+          { role: 'system', content: `你是一个行为洞察分析工具。
+
+【权重判断规则 — 最重要】
+先判断日记类型：
+- 日常流水（今天吃了什么、天气、买了什么、日程安排）→ weight=0，不归因，不总结
+- 情绪宣泄但无规律可提取 → weight=1，只写summary，不归因
+- 有行为规律、认知转变、处事方式、洞察发现 → weight=2，归因+总结
+
+weight=0 时直接返回 {"weight":0,"tags":[],"summary":"","newPrinciple":"","newDesc":""}
+weight=1 时只填 summary，tags 返回空数组
+weight=2 时完整分析
+
+【匹配规则——最重要】
+- 关键词命中不算，必须语义实质相关。
+- 默认只匹配一个最相关的已有原则（即tags数组长度应为1）。
+- 只有当两个原则与文本的相关性权重完全相同，且都非常相关时，才返回两个（tags数组长度可为2）。
+如果没有任何原则匹配，tags返回空数组，由newPrinciple字段承载新发现。
+可以适度宽松，让待录原则机制后续筛选。
+
+已有原则列表（标题：描述）：
+${principleList}
+
+weight=2 时的分析规则：
+1. 理解核心语意和行为模式，不看关键词
+2. 匹配已有原则（最多2个，必须实质相关，不是牵强匹配）
+3. 如涉及列表外的新规律，填 newPrinciple（"关于XX"格式，4-6字）和 newDesc（20-35字方法论）
+4. summary：15-20字，方法论语气，不是情绪描述，不重复原则标题
+
+只返回JSON：{"weight":2,"tags":["原则标题"],"summary":"","newPrinciple":"","newDesc":""}` },
+          { role: 'user', content: text }
+        ]
+      })
+    });
+    const data = await res.json();
+    const raw = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(raw);
+
+    if (!parsed.weight || parsed.weight === 0) {
+      lastAnalysis = { tags: [], summary: '', newPrinciples: [] };
+    } else {
+      const newP = parsed.newPrinciple ? { title: parsed.newPrinciple.trim(), desc: parsed.newDesc || '' } : null;
+      lastAnalysis = {
+        tags: parsed.tags || [],
+        summary: parsed.summary || '',
+        newPrinciples: newP ? [newP] : []
+      };
+    }
+
+    let html = lastAnalysis.tags.length
+      ? lastAnalysis.tags.map(t => `<span class="tag-pill" onclick="selectPrincipleByTitle('${t}')">${t}</span>`).join('')
+      : '<span style="font-size:13px;color:var(--muted);">未匹配到原则</span>';
+    if (lastAnalysis.summary) html += `<div style="margin-top:12px;font-size:13px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:10px;">${lastAnalysis.summary}</div>`;
+    if (lastAnalysis.newPrinciples?.length) {
+      html += `<div style="margin-top:10px;font-size:12px;color:var(--accent);font-family:var(--font-mono);">✦ 新候选原则：${lastAnalysis.newPrinciples[0].title}</div>`;
+    }
+    document.getElementById('tagList').innerHTML = html;
+    document.getElementById('analysisResult').classList.add('visible');
+  } catch(e) {
+    lastAnalysis = { tags: [], summary: '', newPrinciples: [] };
+    document.getElementById('tagList').innerHTML = '<span style="font-size:13px;color:var(--muted);">分析出错，请稍后重试</span>';
+    document.getElementById('analysisResult').classList.add('visible');
+  } finally {
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('loadingIndicator').style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SAVE ENTRY
+// ══════════════════════════════════════════════════════════════════
+async function saveEntry() {
+  const text = document.getElementById('journalInput').value.trim();
+  if (!text) return;
+
+  const mood = numValues.mood;
+  const energy = numValues.energy;
+  const sleep = numValues.sleep;
+  const editId = document.getElementById('analyzeBtn').getAttribute('data-edit-id');
+
+  const dateOverride = document.getElementById('writeModal').getAttribute('data-date-override');
+  const entryDate = dateOverride || new Date().toLocaleDateString('zh-CN');
+  if (!editId) document.getElementById('writeModal').removeAttribute('data-date-override');
+
+  const tags = lastAnalysis?.tags || [];
+  const summary = lastAnalysis?.summary || '';
+  const newPrinciples = lastAnalysis?.newPrinciples || [];
+
+  // BUG FIX: store newPrinciple on entry so it survives edit
+  const newPTitle = newPrinciples.length ? newPrinciples[0].title : '';
+  const newPDesc = newPrinciples.length ? newPrinciples[0].desc : '';
+
+  if (editId) {
+    const oldEntry = entries.find(x => x.id === editId);
+    if (oldEntry) removeEntryFromPrinciples(oldEntry);
+  }
+
+  if (editId) {
+    const idx = entries.findIndex(x => x.id === editId);
+    if (idx !== -1) {
+      entries[idx] = { ...entries[idx], text, mood, energy, sleep, tags, summary, newPrinciple: newPTitle, newDesc: newPDesc };
+    }
+  } else {
+    entries.push({ id: Date.now().toString(), date: entryDate, text, mood, energy, sleep, tags, summary, newPrinciple: newPTitle, newDesc: newPDesc });
+  }
+
+  addEntryToPrinciples({ date: entryDate, tags, summary, text });
+
+
+  // Handle pending principles
+  const pendingRaw = storageGet('zbsPendingPrinciples');
+  const pending = pendingRaw ? JSON.parse(pendingRaw) : {};
+
+  newPrinciples.forEach(np => {
+    if (!np.title) return;
+    if (principles.find(x => x.title === np.title)) return;
+    if (isGenericPrincipleTitle(np.title)) return;
+
+    const pKey = buildPendingKey(np.title);
+    const caseText = summary || text.slice(0, 120) + (text.length > 120 ? '…' : '');
+    const dayKey = getTodayKeyFromDate(entryDate);
+    const timestamp = parseEntryDate(entryDate) || Date.now();
+
+    pending[pKey] = pending[pKey] || {
+      key: pKey,
+      title: np.title,
+      desc: np.desc || '',
+      score: 0,
+      appearDays: [],
+      cases: []
+    };
+
+    const item = pending[pKey];
+    if (!item.desc && np.desc) item.desc = np.desc;
+
+    const alreadySameCase = item.cases.some(c => c.day === entryDate + '（日记）' && c.text === caseText);
+    if (!alreadySameCase) {
+      item.cases.push({ day: entryDate + '（日记）', text: caseText, timestamp });
+      if (item.cases.length > 5) item.cases = item.cases.slice(-5);
+    }
+
+    if (dayKey && !item.appearDays.includes(dayKey)) {
+      item.appearDays.push(dayKey);
+      item.appearDays = item.appearDays.slice(-10);
+    }
+
+    item.score = Number(item.score || 0) + 1.5;
+
+    if (Number(item.score) >= 3 && (item.appearDays || []).length >= 2) {
+      const newId = 'u' + Date.now() + Math.random().toString(36).slice(2,5);
+      const promoted = {
+        id: newId, title: item.title, desc: item.desc,
+        cases: item.cases.map((c, idx) => ({ ...c, originalIndex: idx })),
+        count: item.cases.length,
+        lastUpdate: Date.now()
+      };
+      principles.push(promoted);
+      delete pending[pKey];
+    }
+  });
+
+  storageSet('zbsPendingPrinciples', JSON.stringify(pending));
+  await dualSet('zbsPendingPrinciples', JSON.stringify(pending));
+
+  principles.forEach(p => {
+    p.count = p.cases.length;
+    const maxTimestamp = p.cases.length ? Math.max(...p.cases.map(c => c.timestamp || 0)) : 0;
+    p.lastUpdate = maxTimestamp > 0 ? maxTimestamp : 0;
+  });
+
+  await save();
+  updateStats();
+  renderSidebar();
+  closeModal('writeModal');
+  lastAnalysis = null;
+  editingEntryId = null;
+  document.getElementById('analyzeBtn').removeAttribute('data-edit-id');
+}
+
+function addEntryToPrinciples(entry) {
+  if (!entry.tags || !entry.summary) return;
+  const entryTimestamp = new Date(entry.date).getTime() || Date.now();
+  entry.tags.forEach(tag => {
+    const p = principles.find(x => x.title === tag);
+    if (p) {
+      const dayLabel = entry.date + '（日记）';
+      if (!p.cases.find(c => c.day === dayLabel && c.text === entry.summary)) {
+        p.cases.push({ day: dayLabel, text: entry.summary, timestamp: entryTimestamp, originalIndex: p.cases.length });
+      }
+    }
+  });
+}
+
+function removeEntryFromPrinciples(entry) {
+  if (!entry.tags) return;
+  entry.tags.forEach(tag => {
+    const p = principles.find(x => x.title === tag);
+    if (p) {
+      const dayLabel = entry.date + '（日记）';
+      p.cases = p.cases.filter(c => !(c.day === dayLabel && c.text === entry.summary));
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar() {
+  const wrap = document.getElementById('calendarWrap');
+  if (!wrap) return;
+  const now = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+  const entryDates = new Set();
+  entries.forEach(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth) entryDates.add(d.getDate());
+    const m = e.date.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m && parseInt(m[1]) === calYear && parseInt(m[2])-1 === calMonth) entryDates.add(parseInt(m[3]));
+  });
+
+  const dows = ['日','一','二','三','四','五','六'];
+  let html = `
+    <div class="cal-nav">
+      <button onclick="calNav(-1)">‹</button>
+      <span class="cal-month">${calYear} · ${monthNames[calMonth]}</span>
+      <button onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${Array(firstDay).fill('<div class="cal-day empty">.</div>').join('')}
+      ${Array.from({length: daysInMonth}, (_,i) => {
+        const day = i+1;
+        const hasEntry = entryDates.has(day);
+        const isToday = day === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear();
+        const isPast = new Date(calYear, calMonth, day) <= now;
+        const onclick = hasEntry ? `onclick="calDayClick(${day})"` : isPast ? `onclick="calDayWrite(${day})"` : '';
+        const cls = [hasEntry?'has-entry':'', isToday?'today':'', (!hasEntry && isPast)?'can-write':''].join(' ');
+        return `<div class="cal-day ${cls}" ${onclick}>${day}</div>`;
+      }).join('')}
+    </div>
+  `;
+  wrap.innerHTML = html;
+}
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function calDayClick(day) {
+  const e = entries.find(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth && d.getDate() === day) return true;
+    const m = e.date.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m && parseInt(m[1])===calYear && parseInt(m[2])-1===calMonth && parseInt(m[3])===day) return true;
+    return false;
+  });
+  if (e) showEntry(e.id);
+}
+
+function calDayWrite(day) {
+  openWriteModal();
+  const dateStr = `${calYear}/${calMonth+1}/${day}`;
+  document.getElementById('writeDate').textContent = dateStr;
+  document.getElementById('writeModal').setAttribute('data-date-override', dateStr);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CHAT (improved context management)
+// ══════════════════════════════════════════════════════════════════
+function buildChatSystemPrompt(userMessage) {
+  // Smart context: find relevant principles and entries based on user question
+  const q = (userMessage || '').toLowerCase();
+
+  // Score relevance of each principle
+  const scored = principles.map(p => {
+    let score = 0;
+    const words = [p.title, p.desc, ...p.cases.map(c => c.text)].join(' ').toLowerCase();
+    // Simple keyword overlap
+    const queryChars = [...new Set(q.replace(/[？?！!。，、\s]/g, ''))];
+    queryChars.forEach(ch => { if (words.includes(ch)) score++; });
+    // Boost for title match
+    if (q.includes(p.title.replace('关于', ''))) score += 10;
+    return { p, score };
+  });
+
+  scored.sort((a,b) => b.score - a.score);
+  const topPrinciples = scored.slice(0, 8); // Top 8 most relevant
+
+  const principlesSummary = topPrinciples.map(({p}) =>
+    `【${p.title}】${p.desc}\n案例：${p.cases.slice(0,4).map(c=>`(${c.day}) ${c.text}`).join('；')}`
+  ).join('\n\n');
+
+  // Find time-relevant entries
+  let relevantEntries = entries;
+  if (q.includes('最近') || q.includes('这周') || q.includes('这几天')) {
+    const weekAgo = Date.now() - 7 * 86400000;
+    relevantEntries = entries.filter(e => parseEntryDate(e.date) >= weekAgo);
+  } else if (q.includes('上周')) {
+    const twoWeeksAgo = Date.now() - 14 * 86400000;
+    const weekAgo = Date.now() - 7 * 86400000;
+    relevantEntries = entries.filter(e => { const t = parseEntryDate(e.date); return t >= twoWeeksAgo && t < weekAgo; });
+  }
+
+  // Limit to 15 entries max
+  const entrySlice = relevantEntries.slice(-15);
+  const entriesSummary = entrySlice.map(e =>
+    `[${e.date}] 心情${e.mood||'?'}/能量${e.energy||'?'}/睡眠${e.sleep||'?'}h | ${(e.tags||[]).join('、')||'无标签'}\n${e.text.slice(0,120)}${e.text.length>120?'…':''}`
+  ).join('\n---\n');
+
+  return `你是用户日记本里的对话分析助手。
+
+【相关原则（${topPrinciples.length}/${principles.length}条，已按相关性排序）】
+${principlesSummary}
+
+【日记记录（${entrySlice.length}/${entries.length}条）】
+${entriesSummary || '暂无'}
+
+你的任务：
+- 直接回答，引用具体记录中的例子
+- 如果用户问到的数据不在上面，说明你看到的范围有限，建议缩小问题范围
+- 说中文，语气自然直接，不说教
+- 数据驱动，少推测多引用`;
+}
+
+function openChatModal() {
+  document.getElementById('chatModal').classList.add('visible');
+  if (chatHistory.length === 0) renderChatMessages();
+  document.getElementById('chatContextLabel').textContent = `已加载 ${principles.length} 条原则 · ${entries.length} 篇日记`;
+}
+
+function renderChatMessages() {
+  const container = document.getElementById('chatMessages');
+  if (chatHistory.length === 0) {
+    container.innerHTML = '';
+    container.appendChild(createEmptyState());
+    return;
+  }
+  container.innerHTML = chatHistory.map(msg => {
+    if (msg.role === 'user') {
+      return `<div class="chat-msg user"><div class="chat-avatar">我</div><div class="chat-bubble">${escapeHtml(msg.content)}</div></div>`;
+    } else {
+      return `<div class="chat-msg ai"><div class="chat-avatar">◌</div><div class="chat-bubble">${formatChatText(msg.content)}</div></div>`;
+    }
+  }).join('');
+  scrollChatToBottom();
+}
+
+function createEmptyState() {
+  const div = document.createElement('div');
+  div.className = 'chat-empty'; div.id = 'chatEmpty';
+  div.innerHTML = `
+    <div class="chat-empty-icon">◌</div>
+    <div class="chat-empty-title">和数据聊聊</div>
+    <div class="chat-empty-desc">我知道你所有的原则和日记记录，可以根据日期或话题调取，一起分析。</div>
+    <div class="chat-suggestions">
+      <button class="chat-suggest-btn" onclick="sendSuggestion('为什么我的睡眠和灵感有关联？')">睡眠与灵感</button>
+      <button class="chat-suggest-btn" onclick="sendSuggestion('帮我分析最近一周我触发了哪些原则')">最近一周</button>
+      <button class="chat-suggest-btn" onclick="sendSuggestion('我在边界这件事上有什么规律？')">关于边界</button>
+      <button class="chat-suggest-btn" onclick="sendSuggestion('我最常忽视身体信号是什么时候？')">身体信号</button>
+    </div>
+  `;
+  return div;
+}
+
+function appendChatMessage(role, content, isStreaming = false) {
+  const container = document.getElementById('chatMessages');
+  const emptyEl = document.getElementById('chatEmpty');
+  if (emptyEl) emptyEl.remove();
+  const msgId = 'chat-msg-' + Date.now();
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`; div.id = msgId;
+  if (role === 'user') {
+    div.innerHTML = `<div class="chat-avatar">我</div><div class="chat-bubble">${escapeHtml(content)}</div>`;
+  } else {
+    div.innerHTML = `<div class="chat-avatar">◌</div><div class="chat-bubble" id="${msgId}-bubble">${isStreaming ? '<span class="dot-anim"><i></i><i></i><i></i></span>' : formatChatText(content)}</div>`;
+  }
+  container.appendChild(div);
+  scrollChatToBottom();
+  return msgId;
+}
+
+function updateChatBubble(msgId, content) {
+  const bubble = document.getElementById(msgId + '-bubble');
+  if (bubble) bubble.innerHTML = formatChatText(content);
+  scrollChatToBottom();
+}
+
+function scrollChatToBottom() {
+  const body = document.getElementById('chatBody');
+  if (body) body.scrollTop = body.scrollHeight;
+}
+
+function escapeHtml(text) { return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function formatChatText(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g,'<br>');
+}
+
+async function sendChatMessage() {
+  if (isChatLoading) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const key = getApiKey();
+  if (!key || key.includes('填入')) {
+    appendChatMessage('ai', '需要先在设置里配置 DeepSeek API Key 才能对话。');
+    return;
+  }
+
+  input.value = ''; input.style.height = '';
+  isChatLoading = true;
+  document.getElementById('chatSendBtn').disabled = true;
+
+  chatHistory.push({ role: 'user', content: text });
+  appendChatMessage('user', text);
+  const loadingId = appendChatMessage('ai', '', true);
+
+  try {
+    const res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: 'deepseek-chat', max_tokens: 800,
+        messages: [
+          { role: 'system', content: buildChatSystemPrompt(text) },
+          ...chatHistory
+        ]
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || '（没有收到回复）';
+    chatHistory.push({ role: 'assistant', content: reply });
+    updateChatBubble(loadingId, reply);
+  } catch(e) {
+    const errMsg = '网络出错了，稍后再试？';
+    chatHistory.push({ role: 'assistant', content: errMsg });
+    updateChatBubble(loadingId, errMsg);
+  } finally {
+    isChatLoading = false;
+    document.getElementById('chatSendBtn').disabled = false;
+  }
+}
+
+function sendSuggestion(text) {
+  document.getElementById('chatInput').value = text;
+  sendChatMessage();
+}
+
+function autoResizeChatInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function saveChatHistory() {
+  if (chatHistory.length === 0) return;
+  savedChatHistory = [...chatHistory];
+  await dualSet('zbsSavedChat', JSON.stringify(savedChatHistory));
+  document.getElementById('loadSavedBtn').style.display = '';
+  const btn = document.querySelector('.chat-action-btn');
+  if (btn) { btn.textContent = '✓ 已保存'; setTimeout(() => btn.textContent = '保存记录', 1500); }
+}
+
+function clearChatHistory() {
+  chatHistory = [];
+  renderChatMessages();
+  const container = document.getElementById('chatMessages');
+  container.appendChild(createEmptyState());
+}
+
+function loadSavedChat() {
+  if (!savedChatHistory?.length) return;
+  chatHistory = [...savedChatHistory];
+  renderChatMessages();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════════════════════════
+function handleSearch(query) {
+  if (!query.trim()) { isSearching = false; renderSidebar(); return; }
+  isSearching = true;
+  const q = query.toLowerCase();
+  const seen = new Set();
+  const results = [];
+
+  principles.forEach(p => {
+    const titleMatch = p.title.includes(q) || p.desc.includes(q);
+    p.cases.forEach(c => {
+      if ((titleMatch || c.text.toLowerCase().includes(q)) && !seen.has(c.text)) {
+        seen.add(c.text);
+        results.push({ type: 'principle', principleTitle: p.title, principleId: p.id, day: c.day, text: c.text });
+      }
+    });
+  });
+
+  entries.forEach(e => {
+    if (!seen.has(e.text) && (e.text.toLowerCase().includes(q) || (e.tags||[]).some(t => t.includes(q)))) {
+      seen.add(e.text);
+      results.push({ type: 'entry', day: e.date, text: e.text, id: e.id });
+    }
+  });
+
+  const el = document.getElementById('sidebarContent');
+  el.innerHTML = `<div style="padding:8px 0 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);">"${query}" · ${results.length} 条</div>` +
+    (results.length === 0
+      ? '<div style="font-size:14px;color:var(--muted);padding:12px 0;">没有找到</div>'
+      : results.map(r => `
+        <div class="entry-item search-result-item" data-type="${r.type}" data-id="${r.type==='entry'?r.id:''}" data-pid="${r.type==='principle'?(r.principleId||''):''}">
+          <div class="entry-date">${r.principleTitle ? r.principleTitle+' · ' : ''}${r.day}</div>
+          <div class="entry-preview">${highlight(r.text, q)}</div>
+        </div>
+      `).join(''));
+
+  el.onclick = function(e) {
+    const item = e.target.closest('.search-result-item');
+    if (!item) return;
+    if (item.dataset.type === 'entry') showEntry(item.dataset.id);
+    else selectPrinciple(item.dataset.pid);
+  };
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// WRITE MODAL HELPERS
+// ══════════════════════════════════════════════════════════════════
+function openWriteModal() {
+  editingEntryId = null; lastAnalysis = null;
+  document.getElementById('writeModalTitle').textContent = '写入日记';
+  document.getElementById('writeDate').textContent = new Date().toLocaleDateString('zh-CN');
+  document.getElementById('journalInput').value = '';
+  document.getElementById('wordCount').textContent = '0 字';
+  numValues = { mood: 5, energy: 5, sleep: 8 };
+  document.getElementById('moodVal').textContent = 5;
+  document.getElementById('energyVal').textContent = 5;
+  document.getElementById('sleepVal').textContent = 8;
+  document.getElementById('analysisResult').classList.remove('visible');
+  document.getElementById('analyzeBtn').removeAttribute('data-edit-id');
+  document.getElementById('writeModal').classList.add('visible');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
+
+function openModal(id) {
+  document.getElementById(id).classList.add('visible');
+  if (id === 'dataModal') renderDataModal();
+  if (id === 'toolsModal') renderToolsContent();
+  if (id === 'settingsModal') {
+    const key = loadApiKey();
+    document.getElementById('apiKeyInput').value = key;
+    document.getElementById('apiKeyStatus').textContent = key ? '✓ 已有保存的 Key' : '';
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay') && e.target.id !== 'chatModal') {
+    e.target.classList.remove('visible');
+  }
+});
+
+function clearWrite() {
+  document.getElementById('journalInput').value = '';
+  document.getElementById('wordCount').textContent = '0 字';
+  document.getElementById('analysisResult').classList.remove('visible');
+  lastAnalysis = null;
+}
+
+function updateWordCount() {
+  document.getElementById('wordCount').textContent = document.getElementById('journalInput').value.length + ' 字';
+}
+
+function selectPrincipleByTitle(title) {
+  const p = principles.find(x => x.title === title);
+  if (p) { switchTab('principles'); selectPrinciple(p.id); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// API KEY
+// ══════════════════════════════════════════════════════════════════
+let _apiKey = '';
+function loadApiKey() { try { _apiKey = localStorage.getItem('zbsApiKey') || ''; } catch(e) {} return _apiKey; }
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  _apiKey = val;
+  try { localStorage.setItem('zbsApiKey', val); } catch(e) {}
+  const status = document.getElementById('apiKeyStatus');
+  if (val && val.startsWith('sk-')) { status.textContent = '✓ 已保存'; status.style.color = 'var(--accent)'; }
+  else if (!val) { status.textContent = '已清除'; status.style.color = 'var(--muted)'; }
+  else { status.textContent = '格式似乎不对'; status.style.color = '#e88'; }
+}
+function toggleShowKey() {
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function getApiKey() { return _apiKey || loadApiKey(); }
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════════════
+function exportData() {
+  const initIds = new Set(INITIAL_PRINCIPLES.map(p => p.id));
+  const userPrinciples = principles.filter(p => !initIds.has(p.id));
+  const payload = { version: 2, exportedAt: new Date().toISOString(), entries, userPrinciples };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `U备份_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+function formatTxtLineWrap(text, width = 45) {
+  if (!text) return '';
+  return String(text)
+    .split('\n')
+    .map(line => {
+      let out = '';
+      let current = '';
+      for (const ch of line) {
+        current += ch;
+        if (current.length >= width) {
+          out += current + '\n';
+          current = '';
+        }
+      }
+      return out + current;
+    })
+    .join('\n');
+}
+
+// NEW: Export TXT (fixed-width, mobile reader friendly)
+function exportTxt() {
+  const sorted = [...entries].sort((a, b) => parseEntryDate(a.date) - parseEntryDate(b.date));
+  const lines = sorted.map(e => {
+    const header = `── ${e.date} ──`;
+    const meta = `睡眠：${Number(e.sleep)||0}\n能量：${Number(e.energy)||0}\n心情：${Number(e.mood)||0}`;
+    const body = formatTxtLineWrap(e.text || '', 45);
+    return `${header}\n${meta}\n\n${body}\n`;
+  }).join('\n─────────────────────\n\n');
+  const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `日记_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+ }
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const status = document.getElementById('importStatus');
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = data.entries || (Array.isArray(data) ? data : []);
+      if (!imported.length && !data.userPrinciples?.length) { status.textContent = '⚠ 没有数据'; return; }
+
+      // 恢复日记
+      const existingIds = new Set(entries.map(x => x.id));
+      const newEntries = imported.filter(x => !existingIds.has(x.id));
+      entries = [...entries, ...newEntries];
+
+      // 恢复用户新增原则（version>=2 的备份才有）
+      if (data.userPrinciples?.length) {
+        const existingTitles = new Set(principles.map(p => p.title));
+        data.userPrinciples.forEach(p => {
+          if (!existingTitles.has(p.title)) {
+            p.cases = (p.cases || []).map((c, idx) => ({ ...c, timestamp: c.timestamp || 0, originalIndex: idx }));
+            p.lastUpdate = p.lastUpdate || 0;
+            principles.push(p);
+            existingTitles.add(p.title);
+          }
+        });
+        // 同步写入 storage，让 rebuildFromEntries 也能读到
+        const initIds = new Set(INITIAL_PRINCIPLES.map(x => x.id));
+        const userP = principles.filter(x => !initIds.has(x.id));
+        storageSet('zbsUserPrinciples', JSON.stringify(userP));
+      }
+
+      rebuildFromEntries();
+      await save();
+      updateStats();
+      renderSidebar();
+      renderDataModal();
+      status.textContent = `✓ 新增日记 ${newEntries.length} 条，共 ${entries.length} 条`;
+      status.style.color = 'var(--accent)';
+    } catch(err) {
+      status.textContent = '⚠ 文件格式错误'; status.style.color = '#e88';
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DATA MODAL
+// ══════════════════════════════════════════════════════════════════
+function renderDataModal() {
+  const totalEntries = entries.length;
+  const taggedEntries = entries.filter(e => (e.tags||[]).length > 0).length;
+  const avgMood = entries.filter(e => e.mood).length
+    ? (entries.filter(e => e.mood).reduce((s,e) => s+e.mood, 0) / entries.filter(e => e.mood).length).toFixed(1) : '—';
+
+  document.getElementById('dataStats').innerHTML = [
+    { label: '总日记', val: totalEntries },
+    { label: '已分析', val: taggedEntries },
+    { label: '平均心情', val: avgMood },
+  ].map(s => `
+    <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:var(--accent);">${s.val}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">${s.label}</div>
+    </div>
+  `).join('');
+
+  const tagCount = {};
+  entries.forEach(e => (e.tags||[]).forEach(t => { tagCount[t] = (tagCount[t]||0) + 1; }));
+  const ranked = Object.entries(tagCount).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  document.getElementById('dataRanking').innerHTML = ranked.length
+    ? ranked.map(([tag, cnt]) => `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="font-size:13px;color:var(--text);flex:1;">${tag}</div>
+          <div style="background:var(--surface2);border-radius:20px;height:8px;flex:2;overflow:hidden;">
+            <div style="background:var(--accent);height:100%;width:${Math.round(cnt/ranked[0][1]*100)}%;border-radius:20px;"></div>
+          </div>
+          <div style="font-size:13px;color:var(--muted);width:24px;text-align:right;">${cnt}</div>
+        </div>
+      `).join('')
+    : '<div style="color:var(--muted);font-size:14px;">写几条日记后显示</div>';
+
+  const recent = [...entries].sort((a,b) => b.id - a.id).slice(0, 5);
+  const recentEl = document.getElementById('dataRecentEntries');
+  recentEl.innerHTML = recent.length
+    ? recent.map(e => `
+        <div class="data-entry-item" data-eid="${e.id}" style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="font-size:13px;color:var(--muted);">${e.date}</div>
+            <div style="display:flex;gap:6px;">${(e.tags||[]).slice(0,2).map(t=>`<span class="tag-pill" style="font-size:11px;padding:2px 7px;">${t.replace('关于','')}</span>`).join('')}</div>
+          </div>
+          <div style="font-size:14px;color:var(--text);line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${e.text}</div>
+        </div>
+      `).join('')
+    : '<div style="color:var(--muted);font-size:14px;">还没有日记</div>';
+  recentEl.onclick = function(e) {
+    const item = e.target.closest('.data-entry-item');
+    if (!item) return;
+    closeModal('dataModal'); showEntry(item.dataset.eid);
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SERVICE WORKER (offline)
+// ══════════════════════════════════════════════════════════════════
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    // Create SW inline via blob
+    const swCode = `
+const CACHE_NAME = 'diary-v6';
+const SELF_URL = self.location.href.replace(/sw\\.js$/, '');
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      // Cache the main page
+      return cache.addAll(['/']);
+    }).catch(() => {})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (e) => {
+  const url = new URL(e.request.url);
+  // Only cache same-origin navigation requests
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+  }
+});
+`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SETTINGS & DATA MODALS
+// ══════════════════════════════════════════════════════════════════
+document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeModal('settingsModal')">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>设置</h3>
+      <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">DeepSeek API Key</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">填入后日记保存时自动分析匹配原则。</div>
+        <input type="password" id="apiKeyInput" placeholder="sk-..." style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:15px;outline:none;">
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn-primary" style="flex:1;" onclick="saveApiKey()">保存</button>
+          <button class="btn-secondary" onclick="toggleShowKey()">显示/隐藏</button>
+        </div>
+        <div id="apiKeyStatus" style="font-size:13px;margin-top:8px;color:var(--accent);"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:20px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">关于存储</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;">数据同时存储在 IndexedDB 和 localStorage 中，双重保险。刷新页面不会丢失数据。建议定期导出备份。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dataModal" onclick="if(event.target===this)closeModal('dataModal')">
+  <div class="modal-box" style="max-width:480px;max-height:85vh;">
+    <div class="modal-header">
+      <h3>数据总览</h3>
+      <button class="modal-close" onclick="closeModal('dataModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px;overflow-y:auto;max-height:calc(85vh - 60px);">
+      <div id="dataStats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;"></div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">原则命中排行</div>
+        <div id="dataRanking"></div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">最近记录</div>
+        <div id="dataRecentEntries"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:20px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">备份与恢复</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="exportData()" style="flex:1;min-width:100px;">导出 JSON</button>
+          <button class="btn-primary" onclick="exportTxt()" style="flex:1;min-width:100px;">导出 TXT</button>
+          <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="flex:1;min-width:100px;">导入恢复</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+        <div id="importStatus" style="font-size:13px;margin-top:10px;color:var(--accent);"></div>
+        <div style="font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6;">TXT 只导出时间戳和日记正文，方便阅读。JSON 包含所有数据，用于恢复。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="toolsModal" onclick="if(event.target===this)closeModal('toolsModal')">
+  <div class="modal-box" style="max-width:520px;max-height:88vh;">
+    <div class="modal-header">
+      <h3>更多</h3>
+      <button class="modal-close" onclick="closeModal('toolsModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px;overflow-y:auto;">
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <button class="btn-secondary tools-tab-btn active" style="flex:1;" onclick="switchToolsTab('pending')" id="toolsTabPending">待录原则</button>
+        <button class="btn-secondary tools-tab-btn" style="flex:1;" onclick="switchToolsTab('trends')" id="toolsTabTrends">趋势</button>
+        <button class="btn-secondary tools-tab-btn" style="flex:1;" onclick="switchToolsTab('export')" id="toolsTabExport">导出TXT</button>
+      </div>
+      <div id="toolsContent"></div>
+    </div>
+  </div>
+</div>
+`);
+
+let currentToolsTab = 'pending';
+
+function switchToolsTab(tab) {
+  currentToolsTab = tab;
+  document.querySelectorAll('.tools-tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('toolsTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (btn) btn.classList.add('active');
+  renderToolsContent();
+}
+
+function renderToolsContent() {
+  const el = document.getElementById('toolsContent');
+  if (!el) return;
+  if (currentToolsTab === 'pending') {
+    renderPendingInTools(el);
+  } else if (currentToolsTab === 'trends') {
+    renderTrendsInTools(el);
+  } else if (currentToolsTab === 'export') {
+    el.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:16px;">导出纯文本日记，只含时间戳和正文。</div><button class="btn-primary" onclick="exportTxt()">导出 TXT 文件</button></div>';
+  }
+}
+
+function renderPendingInTools(el) {
+  let pending = {};
+  try { const raw = storageGet('zbsPendingPrinciples'); if (raw) pending = JSON.parse(raw); } catch(e) {}
+  const keys = Object.keys(pending);
+  if (keys.length === 0) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;"><div style="font-size:24px;opacity:0.3;margin-bottom:10px;">◇</div><div style="font-size:13px;color:var(--muted);line-height:1.7;">暂无待录原则。<br>写日记分析后出现的候选原则会在这里，达到总分≥3且跨2天自动升级。</div></div>';
+    return;
+  }
+  el.innerHTML = keys.map(title => {
+    const p = pending[title];
+    return '<div class="pending-card" data-title="' + title + '">' +
+      '<div class="pending-title">' + p.title + '</div>' +
+      '<div class="pending-desc">' + (p.desc || '暂无描述') + '</div>' +
+      '<div class="pending-meta">总分 ' + Number(p.score||0).toFixed(1) + ' · 跨 ' + ((p.appearDays||[]).length) + ' 天 · 达到总分≥3且跨2天自动升级</div>' +
+      (p.cases||[]).map(function(c){ return '<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:4px;padding-left:8px;border-left:2px solid var(--border);">' + c.day + '：' + c.text + '</div>'; }).join('') +
+      '<div class="pending-actions" style="margin-top:10px;">' +
+        '<button class="btn-primary" style="padding:4px 14px;font-size:10px;" onclick="promotePending(\'' + title + '\');renderToolsContent()">立即升级</button>' +
+        '<button class="btn-secondary" style="padding:4px 12px;font-size:10px;color:var(--red);border-color:var(--red);" onclick="deletePending(\'' + title +'\');renderToolsContent()">删除</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderTrendsInTools(el) {
+  if (entries.length === 0) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted);">写几条日记后显示趋势图</div>';
+    return;
+  }
+  el.innerHTML = '<div class="trend-chart">' +
+    '<div class="trend-period-btns">' +
+      '<button id="trendBtn7" class="trend-period-btn ' + (trendPeriod===7?'active':'') + '">7天</button>' +
+      '<button id="trendBtn14" class="trend-period-btn ' + (trendPeriod===14?'active':'') + '">14天</button>' +
+      '<button id="trendBtn30" class="trend-period-btn ' + (trendPeriod===30?'active':'') + '">30天</button>' +
+      '<button id="trendBtnAll" class="trend-period-btn ' + (trendPeriod===9999?'active':'') + '">全部</button>' +
+    '</div><canvas id="trendCanvas"></canvas><div id="trendInsights" style="margin-top:16px;"></div></div>';
+
+  const btn7 = document.getElementById('trendBtn7');
+  const btn14 = document.getElementById('trendBtn14');
+  const btn30 = document.getElementById('trendBtn30');
+  const btnAll = document.getElementById('trendBtnAll');
+
+  if (btn7) btn7.onclick = function(){ trendPeriod = 7; renderTrendsInTools(el); };
+  if (btn14) btn14.onclick = function(){ trendPeriod = 14; renderTrendsInTools(el); };
+  if (btn30) btn30.onclick = function(){ trendPeriod = 30; renderTrendsInTools(el); };
+  if (btnAll) {
+    btnAll.onclick = function(){ trendPeriod = 9999; renderTrendsInTools(el); };
+    const startPress = function(){
+      clearTimeout(allTrendPressTimer);
+      allTrendPressTimer = setTimeout(function(){
+        showAllTrends = !showAllTrends;
+        drawTrendChart();
+      }, 2000);
+    };
+    const endPress = function(){ clearTimeout(allTrendPressTimer); };
+    btnAll.addEventListener('mousedown', startPress);
+    btnAll.addEventListener('mouseup', endPress);
+    btnAll.addEventListener('mouseleave', endPress);
+    btnAll.addEventListener('touchstart', startPress, { passive: true });
+    btnAll.addEventListener('touchend', endPress);
+    btnAll.addEventListener('touchcancel', endPress);
+  }
+
+  setTimeout(drawTrendChart, 50);
+}
+
+
+document.addEventListener('dblclick', function(e) {
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
+}, { passive: false });
+
+let __lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - __lastTouchEnd <= 300) e.preventDefault();
+  __lastTouchEnd = now;
+}, { passive: false });
+
+
+init();
+</script>
+</body>
+</html>
