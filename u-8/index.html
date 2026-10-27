@@ -483,22 +483,6 @@ html, body {
   touch-action: manipulation;
 }
 
-/* Keep the installed iOS web app as a fixed shell. Only the content panel scrolls. */
-@media (display-mode: standalone) {
-  html, body {
-    height: 100%;
-    min-height: 100%;
-    overflow: hidden;
-  }
-
-  body {
-    height: 100dvh;
-    min-height: 100dvh;
-  }
-
-  .app, .sidebar, .sidebar-content { min-height: 0; }
-}
-
 button, .btn-primary, .btn-secondary, .tab-btn, .trend-period-btn, .fab, .modal-close {
   touch-action: manipulation;
 }
